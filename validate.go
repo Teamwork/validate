@@ -1,4 +1,4 @@
-// Package validate implements basic validation for HTTP request parameters.
+// Package validate provides validation for HTTP request parameters.
 //
 // Basic usage example:
 //

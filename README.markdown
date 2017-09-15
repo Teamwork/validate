@@ -3,7 +3,7 @@
 [![GoDoc](https://godoc.org/github.com/Teamwork/validate?status.svg)](https://godoc.org/github.com/Teamwork/validate)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Teamwork/validate)](https://goreportcard.com/report/github.com/Teamwork/validate)
 
-Package validate implements basic validation for HTTP request parameters.
+HTTP request parameter validation for Go.
 
 Basic usage example:
 
