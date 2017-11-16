@@ -4,7 +4,55 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 )
+
+func TestMerge(t *testing.T) {
+	cases := []struct {
+		a, b, want map[string][]string
+	}{
+		{
+			map[string][]string{},
+			map[string][]string{},
+			map[string][]string{},
+		},
+		{
+			map[string][]string{"a": {"b"}},
+			map[string][]string{},
+			map[string][]string{"a": {"b"}},
+		},
+		{
+			map[string][]string{},
+			map[string][]string{"a": {"b"}},
+			map[string][]string{"a": {"b"}},
+		},
+		{
+			map[string][]string{"a": {"b"}},
+			map[string][]string{"a": {"c"}},
+			map[string][]string{"a": {"b", "c"}},
+		},
+		{
+			map[string][]string{"a": {"b"}},
+			map[string][]string{"q": {"c"}},
+			map[string][]string{"a": {"b"}, "q": {"c"}},
+		},
+	}
+
+	for i, tc := range cases {
+		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
+			in := New()
+			in.Errors = tc.a
+			other := New()
+			other.Errors = tc.b
+
+			in.Merge(other)
+
+			if !reflect.DeepEqual(tc.want, in.Errors) {
+				t.Errorf("\nout:  %#v\nwant: %#v\n", in.Errors, tc.want)
+			}
+		})
+	}
+}
 
 func TestString(t *testing.T) {
 	cases := []struct {
@@ -448,6 +496,76 @@ func TestHexColor(t *testing.T) {
 		{
 			func(v Validator) { v.HexColor("v", "#fffffff") },
 			map[string][]string{"v": {"must be a valid color code"}},
+		},
+	}
+
+	for i, tc := range cases {
+		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
+			v := New()
+			tc.val(v)
+
+			if !reflect.DeepEqual(v.Errors, tc.expectedErrors) {
+				t.Errorf("\nout:      %#v\nexpected: %#v\n", v.Errors, tc.expectedErrors)
+			}
+		})
+	}
+}
+
+func TestNumeric(t *testing.T) {
+	cases := []struct {
+		val            func(Validator)
+		expectedErrors map[string][]string
+	}{
+		{
+			func(v Validator) { v.Numeric("k", "1") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.Numeric("k", "0") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.Numeric("k", "-1") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.Numeric("k", "1.2") },
+			map[string][]string{"k": {"must be a whole number"}},
+		},
+		{
+			func(v Validator) { v.Numeric("k", "asd") },
+			map[string][]string{"k": {"must be a whole number"}},
+		},
+	}
+
+	for i, tc := range cases {
+		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
+			v := New()
+			tc.val(v)
+
+			if !reflect.DeepEqual(v.Errors, tc.expectedErrors) {
+				t.Errorf("\nout:      %#v\nexpected: %#v\n", v.Errors, tc.expectedErrors)
+			}
+		})
+	}
+}
+
+func TestDate(t *testing.T) {
+	cases := []struct {
+		val            func(Validator)
+		expectedErrors map[string][]string
+	}{
+		{
+			func(v Validator) { v.Date("k", "2017-11-14T13:37:00Z", time.RFC3339) },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.Date("k", "2017-11-14", time.RFC3339) },
+			map[string][]string{"k": {"must be a date as ‘2006-01-02T15:04:05Z07:00’"}},
+		},
+		{
+			func(v Validator) { v.Date("k", "2017-11-14", time.RFC3339, "not valid") },
+			map[string][]string{"k": {"not valid"}},
 		},
 	}
 

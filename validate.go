@@ -27,14 +27,16 @@
 // this field must be high than 42" would look weird:
 //
 //   must be set, Error: this field must be high than 42
-package validate
+package validate // import "github.com/teamwork/validate"
 
 import (
 	"fmt"
 	"net"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/teamwork/mailaddress"
 )
@@ -61,6 +63,13 @@ func (v *Validator) Append(key, value string, format ...interface{}) {
 // HasErrors reports if this validation has any errors.
 func (v *Validator) HasErrors() bool {
 	return len(v.Errors) > 0
+}
+
+// Merge errors from another validator in to this one.
+func (v *Validator) Merge(other Validator) {
+	for k, val := range other.Errors {
+		v.Errors[k] = append(v.Errors[k], val...)
+	}
 }
 
 // Strings representation shows either all errors or "<no errors>" if there are
@@ -256,6 +265,29 @@ func (v *Validator) Len(key, value string, min, max int, message ...string) {
 			v.Append(key, msg)
 		} else {
 			v.Append(key, fmt.Sprintf(MessageLenShorter, max))
+		}
+	}
+}
+
+// Numeric checks if this looks like a numeric value.
+//
+// Right now this accepts while integers only; both positive and negative.
+func (v *Validator) Numeric(key, value string, message ...string) {
+	_, err := strconv.ParseInt(value, 10, 64)
+	if err != nil {
+		v.Append(key, getMessage(message, MessageNumeric))
+	}
+}
+
+// Date checks if the string looks like a date in the given layout.
+func (v *Validator) Date(key, value, layout string, message ...string) {
+	msg := getMessage(message, "")
+	_, err := time.Parse(layout, value)
+	if err != nil {
+		if msg != "" {
+			v.Append(key, msg)
+		} else {
+			v.Append(key, fmt.Sprintf(MessageDate, layout))
 		}
 	}
 }
