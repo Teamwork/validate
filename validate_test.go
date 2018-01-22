@@ -60,25 +60,25 @@ func TestString(t *testing.T) {
 		expected string
 	}{
 		{Validator{}, "<no errors>"},
-		{Validator{map[string][]string{}}, "<no errors>"},
+		{Validator{map[string][]string{}, "validate"}, "<no errors>"},
 
 		{Validator{map[string][]string{
 			"k": {"oh no"},
-		}}, "k: oh no.\n"},
+		}, "validate"}, "k: oh no.\n"},
 		{Validator{map[string][]string{
 			"k": {"oh no", "more"},
-		}}, "k: oh no, more.\n"},
+		}, "validate"}, "k: oh no, more.\n"},
 		{Validator{map[string][]string{
 			"k": {"oh no", "more", "even more"},
-		}}, "k: oh no, more, even more.\n"},
+		}, "validate"}, "k: oh no, more, even more.\n"},
 		{Validator{map[string][]string{
 			"k":  {"oh no", "more", "even more"},
 			"k2": {"asd"},
-		}}, "k: oh no, more, even more.\nk2: asd.\n"},
+		}, "validate"}, "k: oh no, more, even more.\nk2: asd.\n"},
 		{Validator{map[string][]string{
 			"zxc": {"asd"},
 			"asd": {"oh no", "more", "even more"},
-		}}, "asd: oh no, more, even more.\nzxc: asd.\n"},
+		}, "validate"}, "asd: oh no, more, even more.\nzxc: asd.\n"},
 	}
 
 	for i, tc := range cases {
@@ -573,6 +573,78 @@ func TestDate(t *testing.T) {
 		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
 			v := New()
 			tc.val(v)
+
+			if !reflect.DeepEqual(v.Errors, tc.expectedErrors) {
+				t.Errorf("\nout:      %#v\nexpected: %#v\n", v.Errors, tc.expectedErrors)
+			}
+		})
+	}
+}
+
+func TestValidate(t *testing.T) {
+	type sample struct {
+		Required string `validate:"required"`
+		Domain   string `validate:"required,domain"`
+		Email    string `validate:"email"`
+		Hex      string `validate:"hext"`
+		Ipv4     string `validate:"ipv4"`
+		Numeric  string `validate:"numeric"`
+		Include  string `validate:"include:[a b c]"`
+		Exclude  string `validate:"exclude:[a b c]"`
+		Date     string `validate:"date:2006-01-02T15:04:05Z07:00"`
+		Len      string `validate:"len:[4 10]"`
+	}
+
+	testcases := []struct {
+		input          sample
+		expectedErrors map[string][]string
+	}{
+		{
+			sample{
+				Required: "set",
+				Domain:   "domain.com",
+				Email:    "email@email.com",
+				Hex:      "333333",
+				Ipv4:     "123.123.123.123",
+				Numeric:  "12345",
+				Include:  "a",
+				Exclude:  "d",
+				Date:     "2018-01-22T01:06:00Z",
+				Len:      "1234",
+			},
+			make(map[string][]string),
+		},
+		{
+			sample{
+				Required: "",
+				Domain:   "not a domain",
+				Email:    "not an  email",
+				Hex:      "not hex",
+				Ipv4:     "not an IP",
+				Numeric:  "not a numer",
+				Include:  "d",
+				Exclude:  "a",
+				Date:     "not a date",
+				Len:      "123",
+			},
+			map[string][]string{
+				"Required": []string{"must be set"},
+				"Domain":   []string{"must be a valid domain"},
+				"Email":    []string{"must be a valid email address"},
+				"Ipv4":     []string{"must be a valid IPv4 address"},
+				"Numeric":  []string{"must be a whole number"},
+				"Include":  []string{"must be one of ‘a, b, c’"},
+				"Exclude":  []string{"cannot be ‘a’"},
+				"Date":     []string{"must be a date as ‘2006-01-02T15:04:05Z07:00’"},
+				"Len":      []string{"must be longer than 4 characters"},
+			},
+		},
+	}
+
+	for i, tc := range testcases {
+		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
+			v := New()
+			v.Validate(tc.input)
 
 			if !reflect.DeepEqual(v.Errors, tc.expectedErrors) {
 				t.Errorf("\nout:      %#v\nexpected: %#v\n", v.Errors, tc.expectedErrors)

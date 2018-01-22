@@ -32,6 +32,7 @@ package validate // import "github.com/teamwork/validate"
 import (
 	"fmt"
 	"net"
+	"reflect"
 	"regexp"
 	"sort"
 	"strconv"
@@ -46,11 +47,15 @@ import (
 // Typically you shouldn't create this directly but use the New() function.
 type Validator struct {
 	Errors map[string][]string
+	// TagName is the struct field tag that will be look for
+	// when called validator.Validate(i)
+	TagName string
 }
 
 // New makes a new Validator and ensures that it is properly initialized.
 func New() Validator {
 	v := Validator{}
+	v.TagName = "validate"
 	v.Errors = make(map[string][]string)
 	return v
 }
@@ -290,4 +295,140 @@ func (v *Validator) Date(key, value, layout string, message ...string) {
 			v.Append(key, fmt.Sprintf(MessageDate, layout))
 		}
 	}
+}
+
+// Validate looks into each field tag and validates according to:
+//	type MyStruct struct {
+//		Field  string `validate:"required"`
+//		Field2 string `validate:"include:[a b c]"`
+//		Field3 string `validate:"date:2006-01-02T15:04:05Z07:00"`
+//		Field4 string `validate:"len:[5 9]"`
+//	}
+//	v.Validate(MyStruct{})
+func (v *Validator) Validate(i interface{}) {
+	valueof := reflect.ValueOf(i)
+	typeof := reflect.TypeOf(i)
+	for i := 0; i < valueof.NumField(); i++ {
+		field := typeof.Field(i)
+		if tag := field.Tag.Get(v.TagName); tag != "" {
+			opts := parseOptions(tag)
+			fieldInt := valueof.Field(i).Interface()
+
+			switch e := fieldInt.(type) {
+			case string:
+				v.validateString(e, field.Name, opts)
+				// wat. nothing else supported?
+			}
+		}
+	}
+}
+
+func (v *Validator) validateString(s string, fieldName string, opts validateOpts) {
+	if opts.Required && s == "" {
+		v.Required(fieldName, s)
+	}
+
+	if s == "" {
+		return
+	}
+
+	if opts.Domain {
+		v.Domain(fieldName, s)
+	}
+
+	if opts.Email {
+		v.Email(fieldName, s)
+	}
+
+	if opts.HexColor {
+		v.HexColor(fieldName, s)
+	}
+
+	if opts.IPv4 {
+		v.IPv4(fieldName, s)
+	}
+
+	if opts.Date != "" {
+		v.Date(fieldName, s, opts.Date)
+	}
+
+	if opts.Numeric {
+		v.Numeric(fieldName, s)
+	}
+
+	if len(opts.Include) != 0 {
+		v.Include(fieldName, s, opts.Include)
+	}
+
+	if len(opts.Exclude) != 0 {
+		v.Exclude(fieldName, s, opts.Exclude)
+	}
+
+	if opts.Len != nil {
+		v.Len(fieldName, s, opts.Len.Min, opts.Len.Max)
+	}
+}
+
+var lenRE = regexp.MustCompile(`len:\\[(\\d+)? (\\d+)?\\]`)
+var dateRE = regexp.MustCompile(`date:(.+)`)
+var includeRE = regexp.MustCompile(`include:\\[(.+( .+)*)\\]`)
+var excludeRE = regexp.MustCompile(`exclude:\\[(.+( .+)*)\\]`)
+
+func parseOptions(s string) validateOpts {
+	opts := validateOpts{}
+
+	tagOpts := strings.Split(s, ",")
+	for _, tagOpt := range tagOpts {
+		opts.Required = tagOpt == "required"
+		opts.Domain = tagOpt == "domain"
+		opts.Email = tagOpt == "email"
+		opts.HexColor = tagOpt == "hex"
+		opts.IPv4 = tagOpt == "ipv4"
+		opts.Numeric = tagOpt == "numeric"
+
+		if includeRE.MatchString(tagOpt) {
+			matches := includeRE.FindAllStringSubmatch(s, -1)
+			opts.Include = strings.Split(matches[0][1], " ")
+		}
+
+		if excludeRE.MatchString(tagOpt) {
+			matches := excludeRE.FindAllStringSubmatch(s, -1)
+			opts.Exclude = strings.Split(matches[0][1], " ")
+		}
+
+		if dateRE.MatchString(tagOpt) {
+			matches := dateRE.FindAllStringSubmatch(s, -1)
+			opts.Date = matches[0][1]
+		}
+
+		if lenRE.MatchString(tagOpt) {
+			opts.Len = &struct{ Min, Max int }{}
+			matches := lenRE.FindAllStringSubmatch(s, -1)
+
+			var err error
+			opts.Len.Min, err = strconv.Atoi(matches[0][1])
+			if err != nil {
+				opts.Len.Min = -1
+			}
+			opts.Len.Max, err = strconv.Atoi(matches[0][2])
+			if err != nil {
+				opts.Len.Max = -1
+			}
+		}
+	}
+
+	return opts
+}
+
+type validateOpts struct {
+	Required bool
+	Domain   bool
+	Email    bool
+	Numeric  bool
+	HexColor bool
+	IPv4     bool
+	Len      *struct{ Min, Max int }
+	Date     string
+	Exclude  []string
+	Include  []string
 }
