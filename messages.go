@@ -13,6 +13,7 @@ var (
 	MessageInclude    = "must be one of ‘%s’"
 	MessageNumeric    = "must be a whole number"
 	MessageDate       = "must be a date as ‘%s’"
+	MessageValid      = "must be a valid ‘%s’"
 )
 
 func getMessage(in []string, def string) string {

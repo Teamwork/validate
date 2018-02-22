@@ -580,3 +580,34 @@ func TestDate(t *testing.T) {
 		})
 	}
 }
+
+func TestCustom(t *testing.T) {
+	cases := []struct {
+		val            func(Validator)
+		expectedErrors map[string][]string
+	}{
+		{
+			func(v Validator) { v.Custom("k", func() bool { return true }) },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.Custom("k", func() bool { return false }) },
+			map[string][]string{"k": {"must be a valid ‘k’"}},
+		},
+		{
+			func(v Validator) { v.Custom("k", func() bool { return false }, "custom message") },
+			map[string][]string{"k": {"custom message"}},
+		},
+	}
+
+	for i, tc := range cases {
+		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
+			v := New()
+			tc.val(v)
+
+			if !reflect.DeepEqual(v.Errors, tc.expectedErrors) {
+				t.Errorf("\nout:      %#v\nexpected: %#v\n", v.Errors, tc.expectedErrors)
+			}
+		})
+	}
+}
