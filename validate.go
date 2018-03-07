@@ -269,14 +269,13 @@ func (v *Validator) Len(key, value string, min, max int, message ...string) {
 	}
 }
 
-// Numeric checks if this looks like a numeric value.
-//
-// Right now this accepts while integers only; both positive and negative.
-func (v *Validator) Numeric(key, value string, message ...string) {
-	_, err := strconv.ParseInt(value, 10, 64)
+// Integer checks if this looks like an integer (i.e. a whole number).
+func (v *Validator) Integer(key, value string, message ...string) int64 {
+	i, err := strconv.ParseInt(strings.TrimSpace(value), 10, 64)
 	if err != nil {
-		v.Append(key, getMessage(message, MessageNumeric))
+		v.Append(key, getMessage(message, MessageInteger))
 	}
+	return i
 }
 
 // Date checks if the string looks like a date in the given layout.

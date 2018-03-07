@@ -11,7 +11,7 @@ var (
 	MessageLenShorter = "must be shorter than %d characters"
 	MessageExclude    = "cannot be ‘%s’"
 	MessageInclude    = "must be one of ‘%s’"
-	MessageNumeric    = "must be a whole number"
+	MessageInteger    = "must be a whole number"
 	MessageDate       = "must be a date as ‘%s’"
 )
 
