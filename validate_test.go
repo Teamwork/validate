@@ -511,29 +511,40 @@ func TestHexColor(t *testing.T) {
 	}
 }
 
-func TestNumeric(t *testing.T) {
+func TestInteger(t *testing.T) {
 	cases := []struct {
-		val            func(Validator)
+		val            func(Validator) int64
+		want           int64
 		expectedErrors map[string][]string
 	}{
 		{
-			func(v Validator) { v.Numeric("k", "1") },
+			func(v Validator) int64 { return v.Integer("k", "6") },
+			6,
 			make(map[string][]string),
 		},
 		{
-			func(v Validator) { v.Numeric("k", "0") },
+			func(v Validator) int64 { return v.Integer("k", " 6 ") },
+			6,
 			make(map[string][]string),
 		},
 		{
-			func(v Validator) { v.Numeric("k", "-1") },
+			func(v Validator) int64 { return v.Integer("k", "0") },
+			0,
 			make(map[string][]string),
 		},
 		{
-			func(v Validator) { v.Numeric("k", "1.2") },
+			func(v Validator) int64 { return v.Integer("k", "-1") },
+			-1,
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) int64 { return v.Integer("k", "1.2") },
+			0,
 			map[string][]string{"k": {"must be a whole number"}},
 		},
 		{
-			func(v Validator) { v.Numeric("k", "asd") },
+			func(v Validator) int64 { return v.Integer("k", "asd") },
+			0,
 			map[string][]string{"k": {"must be a whole number"}},
 		},
 	}
@@ -541,10 +552,14 @@ func TestNumeric(t *testing.T) {
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
 			v := New()
-			tc.val(v)
+			i := tc.val(v)
 
 			if !reflect.DeepEqual(v.Errors, tc.expectedErrors) {
 				t.Errorf("\nout:      %#v\nexpected: %#v\n", v.Errors, tc.expectedErrors)
+			}
+
+			if i != tc.want {
+				t.Errorf("\nout:      %#v\nexpected: %#v\n", i, tc.want)
 			}
 		})
 	}
