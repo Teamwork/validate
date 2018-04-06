@@ -30,6 +30,7 @@
 package validate // import "github.com/teamwork/validate"
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 	"regexp"
@@ -53,6 +54,14 @@ func New() Validator {
 	v := Validator{}
 	v.Errors = make(map[string][]string)
 	return v
+}
+
+// StatusCode for the error. Satisfies the httperr.statusCoder interface.
+func (v Validator) StatusCode() int { return 400 }
+
+func (v Validator) Error() string {
+	j, _ := json.Marshal(v.Errors)
+	return string(j)
 }
 
 // Append a new error to the error list for this key.
@@ -271,6 +280,10 @@ func (v *Validator) Len(key, value string, min, max int, message ...string) {
 
 // Integer checks if this looks like an integer (i.e. a whole number).
 func (v *Validator) Integer(key, value string, message ...string) int64 {
+	if value == "" {
+		return 0
+	}
+
 	i, err := strconv.ParseInt(strings.TrimSpace(value), 10, 64)
 	if err != nil {
 		v.Append(key, getMessage(message, MessageInteger))
@@ -280,6 +293,10 @@ func (v *Validator) Integer(key, value string, message ...string) int64 {
 
 // Boolean checks if this looks like a boolean value.
 func (v *Validator) Boolean(key, value string, message ...string) bool {
+	if value == "" {
+		return false
+	}
+
 	b, err := strconv.ParseBool(value)
 	if err != nil {
 		v.Append(key, getMessage(message, MessageBool))

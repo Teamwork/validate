@@ -384,6 +384,11 @@ func TestInteger(t *testing.T) {
 		wantErrors map[string][]string
 	}{
 		{
+			func(v Validator) int64 { return v.Integer("k", "") },
+			0,
+			make(map[string][]string),
+		},
+		{
 			func(v Validator) int64 { return v.Integer("k", "6") },
 			6,
 			make(map[string][]string),
@@ -440,6 +445,11 @@ func TestBoolean(t *testing.T) {
 		{
 			func(v Validator) bool { return v.Boolean("k", "true") },
 			true,
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) bool { return v.Boolean("k", "") },
+			false,
 			make(map[string][]string),
 		},
 		{
