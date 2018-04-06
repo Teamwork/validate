@@ -565,6 +565,40 @@ func TestInteger(t *testing.T) {
 	}
 }
 
+func TestBoolean(t *testing.T) {
+	cases := []struct {
+		val            func(Validator) bool
+		want           bool
+		expectedErrors map[string][]string
+	}{
+		{
+			func(v Validator) bool { return v.Boolean("k", "true") },
+			true,
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) bool { return v.Boolean("k", "on") },
+			false,
+			map[string][]string{"k": {"must be a boolean"}},
+		},
+	}
+
+	for i, tc := range cases {
+		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
+			v := New()
+			i := tc.val(v)
+
+			if !reflect.DeepEqual(v.Errors, tc.expectedErrors) {
+				t.Errorf("\nout:      %#v\nexpected: %#v\n", v.Errors, tc.expectedErrors)
+			}
+
+			if i != tc.want {
+				t.Errorf("\nout:      %#v\nexpected: %#v\n", i, tc.want)
+			}
+		})
+	}
+}
+
 func TestDate(t *testing.T) {
 	cases := []struct {
 		val            func(Validator)
