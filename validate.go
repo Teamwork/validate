@@ -278,6 +278,15 @@ func (v *Validator) Integer(key, value string, message ...string) int64 {
 	return i
 }
 
+// Boolean checks if this looks like a boolean value.
+func (v *Validator) Boolean(key, value string, message ...string) bool {
+	b, err := strconv.ParseBool(value)
+	if err != nil {
+		v.Append(key, getMessage(message, MessageBool))
+	}
+	return b
+}
+
 // Date checks if the string looks like a date in the given layout.
 func (v *Validator) Date(key, value, layout string, message ...string) {
 	msg := getMessage(message, "")
