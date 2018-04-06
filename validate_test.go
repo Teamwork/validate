@@ -56,8 +56,8 @@ func TestMerge(t *testing.T) {
 
 func TestString(t *testing.T) {
 	cases := []struct {
-		in       Validator
-		expected string
+		in   Validator
+		want string
 	}{
 		{Validator{}, "<no errors>"},
 		{Validator{map[string][]string{}}, "<no errors>"},
@@ -84,18 +84,19 @@ func TestString(t *testing.T) {
 	for i, tc := range cases {
 		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
 			out := tc.in.String()
-			if out != tc.expected {
-				t.Errorf("\nout:      %#v\nexpected: %#v\n", out, tc.expected)
+			if out != tc.want {
+				t.Errorf("\nout:  %#v\nwant: %#v\n", out, tc.want)
 			}
 		})
 	}
 }
 
-func TestRequired(t *testing.T) {
+func TestValidators(t *testing.T) {
 	cases := []struct {
-		val            func(Validator)
-		expectedErrors map[string][]string
+		val        func(Validator)
+		wantErrors map[string][]string
 	}{
+		// Required
 		{
 			func(v Validator) {
 				v.Required("firstName", "not empty")
@@ -133,190 +134,94 @@ func TestRequired(t *testing.T) {
 				"email2": {"must be a valid email address"},
 			},
 		},
-	}
-
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
-			v := New()
-			tc.val(v)
-
-			if !reflect.DeepEqual(v.Errors, tc.expectedErrors) {
-				t.Errorf("\nout:      %#v\nexpected: %#v\n", v.Errors, tc.expectedErrors)
-			}
-		})
-	}
-}
-
-func TestLen(t *testing.T) {
-	cases := []struct {
-		val            func(Validator)
-		expectedErrors map[string][]string
-	}{
 		{
-			func(v Validator) {
-				v.Len("v", "w00t", 2, 5)
-			},
+			func(v Validator) { v.Required("k", true) },
 			make(map[string][]string),
 		},
 		{
-			func(v Validator) {
-				v.Len("v", "w00t", 4, 0)
-			},
+			func(v Validator) { v.Required("k", false) },
+			map[string][]string{"k": {"must be set"}},
+		},
+
+		// Len
+		{
+			func(v Validator) { v.Len("v", "w00t", 2, 5) },
 			make(map[string][]string),
 		},
 		{
-			func(v Validator) {
-				v.Len("v", "w00t", 0, 4)
-			},
+			func(v Validator) { v.Len("v", "w00t", 4, 0) },
 			make(map[string][]string),
 		},
 		{
-			func(v Validator) {
-				v.Len("v", "w00t", 1, 2)
-			},
+			func(v Validator) { v.Len("v", "w00t", 0, 4) },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.Len("v", "w00t", 1, 2) },
 			map[string][]string{"v": {"must be shorter than 2 characters"}},
 		},
 		{
-			func(v Validator) {
-				v.Len("v", "w00t", 1, 2, "foo")
-			},
+			func(v Validator) { v.Len("v", "w00t", 1, 2, "foo") },
 			map[string][]string{"v": {"foo"}},
 		},
 		{
-			func(v Validator) {
-				v.Len("v", "w00t", 16, 32)
-			},
+			func(v Validator) { v.Len("v", "w00t", 16, 32) },
 			map[string][]string{"v": {"must be longer than 16 characters"}},
 		},
-	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
-			v := New()
-			tc.val(v)
-
-			if !reflect.DeepEqual(v.Errors, tc.expectedErrors) {
-				t.Errorf("\nout:      %#v\nexpected: %#v\n", v.Errors, tc.expectedErrors)
-			}
-		})
-	}
-}
-
-func TestExclude(t *testing.T) {
-	cases := []struct {
-		val            func(Validator)
-		expectedErrors map[string][]string
-	}{
+		// Exclude
 		{
-			func(v Validator) {
-				v.Exclude("key", "val", []string{})
-			},
+			func(v Validator) { v.Exclude("key", "val", []string{}) },
 			make(map[string][]string),
 		},
 		{
-			func(v Validator) {
-				v.Exclude("key", "val", nil)
-			},
+			func(v Validator) { v.Exclude("key", "val", nil) },
 			make(map[string][]string),
 		},
 		{
-			func(v Validator) {
-				v.Exclude("key", "val", []string{"valx"})
-			},
+			func(v Validator) { v.Exclude("key", "val", []string{"valx"}) },
 			make(map[string][]string),
 		},
 		{
-			func(v Validator) {
-				v.Exclude("key", "val", []string{"VAL"})
-			},
+			func(v Validator) { v.Exclude("key", "val", []string{"VAL"}) },
 			map[string][]string{"key": {`cannot be ‘VAL’`}},
 		},
 		{
-			func(v Validator) {
-				v.Exclude("key", "val", []string{"VAL"}, "foo")
-			},
+			func(v Validator) { v.Exclude("key", "val", []string{"VAL"}, "foo") },
 			map[string][]string{"key": {`foo`}},
 		},
 		{
-			func(v Validator) {
-				v.Exclude("key", "val", []string{"hello", "val"})
-			},
+			func(v Validator) { v.Exclude("key", "val", []string{"hello", "val"}) },
 			map[string][]string{"key": {`cannot be ‘val’`}},
 		},
-	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
-			v := New()
-			tc.val(v)
-
-			if !reflect.DeepEqual(v.Errors, tc.expectedErrors) {
-				t.Errorf("\nout:      %#v\nexpected: %#v\n", v.Errors, tc.expectedErrors)
-			}
-		})
-	}
-}
-
-func TestInclude(t *testing.T) {
-	cases := []struct {
-		val            func(Validator)
-		expectedErrors map[string][]string
-	}{
+		// Include
 		{
-			func(v Validator) {
-				v.Include("key", "val", []string{})
-			},
+			func(v Validator) { v.Include("key", "val", []string{}) },
 			make(map[string][]string),
 		},
 		{
-			func(v Validator) {
-				v.Include("key", "val", nil)
-			},
+			func(v Validator) { v.Include("key", "val", nil) },
 			make(map[string][]string),
 		},
 		{
-			func(v Validator) {
-				v.Include("key", "val", []string{"valx"})
-			},
+			func(v Validator) { v.Include("key", "val", []string{"valx"}) },
 			map[string][]string{"key": {`must be one of ‘valx’`}},
 		},
 		{
-			func(v Validator) {
-				v.Include("key", "val", []string{"valx"}, "foo")
-			},
+			func(v Validator) { v.Include("key", "val", []string{"valx"}, "foo") },
 			map[string][]string{"key": {`foo`}},
 		},
 		{
-			func(v Validator) {
-				v.Include("key", "val", []string{"VAL"})
-			},
+			func(v Validator) { v.Include("key", "val", []string{"VAL"}) },
 			make(map[string][]string),
 		},
 		{
-			func(v Validator) {
-				v.Include("key", "val", []string{"hello", "val"})
-			},
+			func(v Validator) { v.Include("key", "val", []string{"hello", "val"}) },
 			make(map[string][]string),
 		},
-	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
-			v := New()
-			tc.val(v)
-
-			if !reflect.DeepEqual(v.Errors, tc.expectedErrors) {
-				t.Errorf("\nout:      %#v\nexpected: %#v\n", v.Errors, tc.expectedErrors)
-			}
-		})
-	}
-}
-
-func TestDomain(t *testing.T) {
-	cases := []struct {
-		val            func(Validator)
-		expectedErrors map[string][]string
-	}{
+		// Domain
 		{
 			func(v Validator) { v.Domain("v", "") },
 			make(map[string][]string),
@@ -358,120 +263,8 @@ func TestDomain(t *testing.T) {
 			func(v Validator) { v.Domain("v", "ex ample.com") },
 			map[string][]string{"v": {"must be a valid domain"}},
 		},
-	}
 
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
-			v := New()
-			tc.val(v)
-
-			if !reflect.DeepEqual(v.Errors, tc.expectedErrors) {
-				t.Errorf("\nout:      %#v\nexpected: %#v\n", v.Errors, tc.expectedErrors)
-			}
-		})
-	}
-}
-
-func TestEmail(t *testing.T) {
-	cases := []struct {
-		val            func(Validator)
-		expectedErrors map[string][]string
-	}{
-		// Don't need to extensively validate emails, we have tests for that in
-		// the mailaddress package already.
-		{
-			func(v Validator) { v.Email("v", "") },
-			make(map[string][]string),
-		},
-		{
-			func(v Validator) { v.Email("v", "martin@example.com") },
-			make(map[string][]string),
-		},
-		{
-			func(v Validator) { v.Email("v", "martin") },
-			map[string][]string{"v": {"must be a valid email address"}},
-		},
-		{
-			func(v Validator) { v.Email("v", "martin", "foo") },
-			map[string][]string{"v": {"foo"}},
-		},
-	}
-
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
-			v := New()
-			tc.val(v)
-
-			if !reflect.DeepEqual(v.Errors, tc.expectedErrors) {
-				t.Errorf("\nout:      %#v\nexpected: %#v\n", v.Errors, tc.expectedErrors)
-			}
-		})
-	}
-}
-
-func TestIPv4(t *testing.T) {
-	cases := []struct {
-		val            func(Validator)
-		expectedErrors map[string][]string
-	}{
-		{
-			func(v Validator) { v.IPv4("v", "") },
-			make(map[string][]string),
-		},
-		{
-			func(v Validator) { v.IPv4("v", "127.0.0.1") },
-			make(map[string][]string),
-		},
-
-		{
-			func(v Validator) { v.IPv4("v", "127.0.0.4/8") },
-			map[string][]string{"v": {"must be a valid IPv4 address"}},
-		},
-		{
-			func(v Validator) { v.IPv4("v", "127.0.0.4/8", "foo") },
-			map[string][]string{"v": {"foo"}},
-		},
-
-		// Technically correct but Go doesn't seem to like it.
-		{
-			func(v Validator) { v.IPv4("v", "127.1") },
-			map[string][]string{"v": {"must be a valid IPv4 address"}},
-		},
-		{
-			func(v Validator) { v.IPv4("v", "127.0.0.506") },
-			map[string][]string{"v": {"must be a valid IPv4 address"}},
-		},
-		{
-			func(v Validator) { v.IPv4("v", "127.") },
-			map[string][]string{"v": {"must be a valid IPv4 address"}},
-		},
-		{
-			func(v Validator) { v.IPv4("v", "asdf") },
-			map[string][]string{"v": {"must be a valid IPv4 address"}},
-		},
-		{
-			func(v Validator) { v.IPv4("v", "::1") },
-			map[string][]string{"v": {"must be a valid IPv4 address"}},
-		},
-	}
-
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
-			v := New()
-			tc.val(v)
-
-			if !reflect.DeepEqual(v.Errors, tc.expectedErrors) {
-				t.Errorf("\nout:      %#v\nexpected: %#v\n", v.Errors, tc.expectedErrors)
-			}
-		})
-	}
-}
-
-func TestHexColor(t *testing.T) {
-	cases := []struct {
-		val            func(Validator)
-		expectedErrors map[string][]string
-	}{
+		// HexColor
 		{
 			func(v Validator) { v.HexColor("v", "") },
 			make(map[string][]string),
@@ -497,6 +290,79 @@ func TestHexColor(t *testing.T) {
 			func(v Validator) { v.HexColor("v", "#fffffff") },
 			map[string][]string{"v": {"must be a valid color code"}},
 		},
+
+		// Date
+		{
+			func(v Validator) { v.Date("k", "2017-11-14T13:37:00Z", time.RFC3339) },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.Date("k", "2017-11-14", time.RFC3339) },
+			map[string][]string{"k": {"must be a date as ‘2006-01-02T15:04:05Z07:00’"}},
+		},
+		{
+			func(v Validator) { v.Date("k", "2017-11-14", time.RFC3339, "not valid") },
+			map[string][]string{"k": {"not valid"}},
+		},
+
+		// Email
+		// Don't need to extensively validate emails, we have tests for that in
+		// the mailaddress package already.
+		{
+			func(v Validator) { v.Email("v", "") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.Email("v", "martin@example.com") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.Email("v", "martin") },
+			map[string][]string{"v": {"must be a valid email address"}},
+		},
+		{
+			func(v Validator) { v.Email("v", "martin", "foo") },
+			map[string][]string{"v": {"foo"}},
+		},
+
+		// IPv4
+		{
+			func(v Validator) { v.IPv4("v", "") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.IPv4("v", "127.0.0.1") },
+			make(map[string][]string),
+		},
+
+		{
+			func(v Validator) { v.IPv4("v", "127.0.0.4/8") },
+			map[string][]string{"v": {"must be a valid IPv4 address"}},
+		},
+		{
+			func(v Validator) { v.IPv4("v", "127.0.0.4/8", "foo") },
+			map[string][]string{"v": {"foo"}},
+		},
+		{
+			func(v Validator) { v.IPv4("v", "127.1") }, // Technically correct but Go doesn't seem to like it.
+			map[string][]string{"v": {"must be a valid IPv4 address"}},
+		},
+		{
+			func(v Validator) { v.IPv4("v", "127.0.0.506") },
+			map[string][]string{"v": {"must be a valid IPv4 address"}},
+		},
+		{
+			func(v Validator) { v.IPv4("v", "127.") },
+			map[string][]string{"v": {"must be a valid IPv4 address"}},
+		},
+		{
+			func(v Validator) { v.IPv4("v", "asdf") },
+			map[string][]string{"v": {"must be a valid IPv4 address"}},
+		},
+		{
+			func(v Validator) { v.IPv4("v", "::1") },
+			map[string][]string{"v": {"must be a valid IPv4 address"}},
+		},
 	}
 
 	for i, tc := range cases {
@@ -504,8 +370,8 @@ func TestHexColor(t *testing.T) {
 			v := New()
 			tc.val(v)
 
-			if !reflect.DeepEqual(v.Errors, tc.expectedErrors) {
-				t.Errorf("\nout:      %#v\nexpected: %#v\n", v.Errors, tc.expectedErrors)
+			if !reflect.DeepEqual(v.Errors, tc.wantErrors) {
+				t.Errorf("\nout:  %#v\nwant: %#v\n", v.Errors, tc.wantErrors)
 			}
 		})
 	}
@@ -513,9 +379,9 @@ func TestHexColor(t *testing.T) {
 
 func TestInteger(t *testing.T) {
 	cases := []struct {
-		val            func(Validator) int64
-		want           int64
-		expectedErrors map[string][]string
+		val        func(Validator) int64
+		want       int64
+		wantErrors map[string][]string
 	}{
 		{
 			func(v Validator) int64 { return v.Integer("k", "6") },
@@ -554,12 +420,12 @@ func TestInteger(t *testing.T) {
 			v := New()
 			i := tc.val(v)
 
-			if !reflect.DeepEqual(v.Errors, tc.expectedErrors) {
-				t.Errorf("\nout:      %#v\nexpected: %#v\n", v.Errors, tc.expectedErrors)
+			if !reflect.DeepEqual(v.Errors, tc.wantErrors) {
+				t.Errorf("\nout:  %#v\nwant: %#v\n", v.Errors, tc.wantErrors)
 			}
 
 			if i != tc.want {
-				t.Errorf("\nout:      %#v\nexpected: %#v\n", i, tc.want)
+				t.Errorf("\nout:  %#v\nwant: %#v\n", i, tc.want)
 			}
 		})
 	}
@@ -567,9 +433,9 @@ func TestInteger(t *testing.T) {
 
 func TestBoolean(t *testing.T) {
 	cases := []struct {
-		val            func(Validator) bool
-		want           bool
-		expectedErrors map[string][]string
+		val        func(Validator) bool
+		want       bool
+		wantErrors map[string][]string
 	}{
 		{
 			func(v Validator) bool { return v.Boolean("k", "true") },
@@ -588,43 +454,12 @@ func TestBoolean(t *testing.T) {
 			v := New()
 			i := tc.val(v)
 
-			if !reflect.DeepEqual(v.Errors, tc.expectedErrors) {
-				t.Errorf("\nout:      %#v\nexpected: %#v\n", v.Errors, tc.expectedErrors)
+			if !reflect.DeepEqual(v.Errors, tc.wantErrors) {
+				t.Errorf("\nout:  %#v\nwant: %#v\n", v.Errors, tc.wantErrors)
 			}
 
 			if i != tc.want {
-				t.Errorf("\nout:      %#v\nexpected: %#v\n", i, tc.want)
-			}
-		})
-	}
-}
-
-func TestDate(t *testing.T) {
-	cases := []struct {
-		val            func(Validator)
-		expectedErrors map[string][]string
-	}{
-		{
-			func(v Validator) { v.Date("k", "2017-11-14T13:37:00Z", time.RFC3339) },
-			make(map[string][]string),
-		},
-		{
-			func(v Validator) { v.Date("k", "2017-11-14", time.RFC3339) },
-			map[string][]string{"k": {"must be a date as ‘2006-01-02T15:04:05Z07:00’"}},
-		},
-		{
-			func(v Validator) { v.Date("k", "2017-11-14", time.RFC3339, "not valid") },
-			map[string][]string{"k": {"not valid"}},
-		},
-	}
-
-	for i, tc := range cases {
-		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
-			v := New()
-			tc.val(v)
-
-			if !reflect.DeepEqual(v.Errors, tc.expectedErrors) {
-				t.Errorf("\nout:      %#v\nexpected: %#v\n", v.Errors, tc.expectedErrors)
+				t.Errorf("\nout:  %#v\nwant: %#v\n", i, tc.want)
 			}
 		})
 	}
