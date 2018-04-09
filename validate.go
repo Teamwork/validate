@@ -46,7 +46,7 @@ import (
 //
 // Typically you shouldn't create this directly but use the New() function.
 type Validator struct {
-	Errors map[string][]string
+	Errors map[string][]string `json:"errors"`
 }
 
 // New makes a new Validator and ensures that it is properly initialized.
@@ -56,13 +56,14 @@ func New() Validator {
 	return v
 }
 
+// Error interface.
+func (v Validator) Error() string { return v.String() }
+
 // StatusCode for the error. Satisfies the httperr.statusCoder interface.
 func (v Validator) StatusCode() int { return 400 }
 
-func (v Validator) Error() string {
-	j, _ := json.Marshal(v.Errors)
-	return string(j)
-}
+// ErrorJSON for reporting errors as JSON.
+func (v Validator) ErrorJSON() ([]byte, error) { return json.Marshal(v) }
 
 // Append a new error to the error list for this key.
 func (v *Validator) Append(key, value string, format ...interface{}) {
