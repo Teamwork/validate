@@ -15,7 +15,7 @@
 //  JSON response:
 //
 //    if v.HasErrors() {
-//        return httperr.Validation(c, v.Errors)
+//        return guru.Validation(c, v.Errors)
 //    }
 //
 // All validators treat the input's zero type (empty string, 0, nil, etc.) as
@@ -59,7 +59,7 @@ func New() Validator {
 // Error interface.
 func (v Validator) Error() string { return v.String() }
 
-// StatusCode for the error. Satisfies the httperr.statusCoder interface.
+// StatusCode for the error. Satisfies the guru.statusCoder interface.
 func (v Validator) StatusCode() int { return 400 }
 
 // ErrorJSON for reporting errors as JSON.
