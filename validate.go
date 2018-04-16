@@ -59,8 +59,8 @@ func New() Validator {
 // Error interface.
 func (v Validator) Error() string { return v.String() }
 
-// StatusCode for the error. Satisfies the guru.statusCoder interface.
-func (v Validator) StatusCode() int { return 400 }
+// Code for the error. Satisfies the guru.coder interface.
+func (v Validator) Code() int { return 400 }
 
 // ErrorJSON for reporting errors as JSON.
 func (v Validator) ErrorJSON() ([]byte, error) { return json.Marshal(v) }
