@@ -11,19 +11,41 @@
   branch = "master"
   name = "github.com/hashicorp/go-multierror"
   packages = ["."]
-  revision = "83588e72410abfbe4df460eeb6f30841ae47d4c4"
+  revision = "b7773ae218740a7be65057fc60b366a49b538a44"
 
 [[projects]]
   branch = "master"
   name = "github.com/teamwork/mailaddress"
   packages = ["."]
-  revision = "cbe818c503bd3a2c0ad5ad52f4abe36f22ff4c74"
+  revision = "e0bce973c1a85a932776b0aed8919ac86dcd82d6"
 
 [[projects]]
-  name = "gopkg.in/iconv.v1"
+  branch = "master"
+  name = "github.com/teamwork/toutf8"
   packages = ["."]
-  revision = "16a760eb7e186ae0e3aedda00d4a1daa4d0701d8"
-  version = "v1.1.1"
+  revision = "908c4b127591e39bd79a8214ca158a4f8baff682"
+
+[[projects]]
+  name = "golang.org/x/text"
+  packages = [
+    "encoding",
+    "encoding/charmap",
+    "encoding/ianaindex",
+    "encoding/internal",
+    "encoding/internal/identifier",
+    "encoding/japanese",
+    "encoding/korean",
+    "encoding/simplifiedchinese",
+    "encoding/traditionalchinese",
+    "encoding/unicode",
+    "internal/gen",
+    "internal/utf8internal",
+    "runes",
+    "transform",
+    "unicode/cldr"
+  ]
+  revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
+  version = "v0.3.0"
 
 [solve-meta]
   analyzer-name = "dep"
