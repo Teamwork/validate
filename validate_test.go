@@ -443,9 +443,9 @@ func TestBoolean(t *testing.T) {
 		wantErrors map[string][]string
 	}{
 		{
-			func(v Validator) bool { return v.Boolean("k", "true") },
-			true,
-			make(map[string][]string),
+			func(v Validator) bool { return v.Boolean("k", "on") },
+			false,
+			map[string][]string{"k": {"must be a boolean"}},
 		},
 		{
 			func(v Validator) bool { return v.Boolean("k", "") },
@@ -453,9 +453,64 @@ func TestBoolean(t *testing.T) {
 			make(map[string][]string),
 		},
 		{
-			func(v Validator) bool { return v.Boolean("k", "on") },
+			func(v Validator) bool { return v.Boolean("k", "0") },
 			false,
-			map[string][]string{"k": {"must be a boolean"}},
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) bool { return v.Boolean("k", "n") },
+			false,
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) bool { return v.Boolean("k", "no") },
+			false,
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) bool { return v.Boolean("k", "f") },
+			false,
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) bool { return v.Boolean("k", "false") },
+			false,
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) bool { return v.Boolean("k", "FALSE") },
+			false,
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) bool { return v.Boolean("k", "1") },
+			true,
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) bool { return v.Boolean("k", "y") },
+			true,
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) bool { return v.Boolean("k", "yes") },
+			true,
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) bool { return v.Boolean("k", "t") },
+			true,
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) bool { return v.Boolean("k", "true") },
+			true,
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) bool { return v.Boolean("k", "TRUE") },
+			true,
+			make(map[string][]string),
 		},
 	}
 

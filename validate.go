@@ -298,11 +298,14 @@ func (v *Validator) Boolean(key, value string, message ...string) bool {
 		return false
 	}
 
-	b, err := strconv.ParseBool(value)
-	if err != nil {
-		v.Append(key, getMessage(message, MessageBool))
+	switch strings.ToLower(value) {
+	case "1", "y", "yes", "t", "true":
+		return true
+	case "0", "n", "no", "f", "false":
+		return false
 	}
-	return b
+	v.Append(key, getMessage(message, MessageBool))
+	return false
 }
 
 // Date checks if the string looks like a date in the given layout.
