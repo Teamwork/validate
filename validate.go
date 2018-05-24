@@ -165,7 +165,7 @@ var reValidDomain = regexp.MustCompile(`` +
 func (v *Validator) Exclude(key, value string, exclude []string, message ...string) {
 	msg := getMessage(message, "")
 
-	value = strings.ToLower(value)
+	value = strings.TrimSpace(strings.ToLower(value))
 	for _, e := range exclude {
 		if strings.ToLower(e) == value {
 			if msg != "" {
@@ -186,7 +186,7 @@ func (v *Validator) Include(key, value string, include []string, message ...stri
 		return
 	}
 
-	value = strings.ToLower(value)
+	value = strings.TrimSpace(strings.ToLower(value))
 	for _, e := range include {
 		if strings.EqualFold(e, value) {
 			return
