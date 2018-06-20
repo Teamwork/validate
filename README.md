@@ -16,3 +16,5 @@ Basic usage example:
 	}
 
 See godoc for more info.
+
+<!-- import "github.com/teamwork/validate" -->
