@@ -11,15 +11,12 @@
 //       }
 //   }
 //
-//  When using it from echo, you can use this helper to return the appropriate
-//  JSON response:
-//
-//    if v.HasErrors() {
-//        return guru.Validation(c, v.Errors)
-//    }
-//
 // All validators treat the input's zero type (empty string, 0, nil, etc.) as
-// valid. If you want to make a parameter required use the Required() validator.
+// valid. Use the Required() validator if you want to make a parameter required.
+//
+// All validators optionally accept a custom message as the last parameter:
+//
+//   v.Required("key", value, "you really need to set this")
 //
 // The error text only includes a simple human description such as "must be set"
 // or "must be a valid email". When adding new validations, make sure that they
@@ -27,6 +24,12 @@
 // this field must be high than 42" would look weird:
 //
 //   must be set, Error: this field must be high than 42
+//
+// You can set your own errors with v.Append("key", "message"):
+//
+//   if !condition {
+//       v.Append("key", "must be a valid foo")
+//   }
 package validate // import "github.com/teamwork/validate"
 
 import (
@@ -59,7 +62,8 @@ func New() Validator {
 // Error interface.
 func (v Validator) Error() string { return v.String() }
 
-// Code for the error. Satisfies the guru.coder interface.
+// Code for the error. Satisfies the guru.coder interface in
+// github.com/teamwork/guru.
 func (v Validator) Code() int { return 400 }
 
 // ErrorJSON for reporting errors as JSON.
