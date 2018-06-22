@@ -116,29 +116,17 @@ func (v *Validator) String() string {
 func (v *Validator) Required(key string, value interface{}, message ...string) {
 	msg := getMessage(message, MessageRequired)
 
-	switch value.(type) {
+	switch val := value.(type) {
 	case string:
-		if strings.TrimSpace(value.(string)) == "" {
+		if strings.TrimSpace(val) == "" {
 			v.Append(key, msg)
 		}
-	case int:
-		if value.(int) == 0 {
-			v.Append(key, msg)
-		}
-	case int64:
-		if value.(int64) == 0 {
-			v.Append(key, msg)
-		}
-	case uint:
-		if value.(uint) == 0 {
-			v.Append(key, msg)
-		}
-	case uint64:
-		if value.(uint64) == 0 {
+	case int, int64, uint, uint64:
+		if val == 0 {
 			v.Append(key, msg)
 		}
 	case bool:
-		if !value.(bool) {
+		if !val {
 			v.Append(key, msg)
 		}
 	default:
