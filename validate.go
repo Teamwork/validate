@@ -79,6 +79,25 @@ func (v *Validator) HasErrors() bool {
 	return len(v.Errors) > 0
 }
 
+// ErrorOrNil returns nil if there are no errors, or the Validator object if there are.
+//
+// This makes it a bit more elegant to return from a function:
+//
+//   if v.HasErrors() {
+//       return v
+//   }
+//   return nil
+//
+// Can now be:
+//
+//   return v.ErrorOrNil()
+func (v *Validator) ErrorOrNil() error {
+	if v.HasErrors() {
+		return v
+	}
+	return nil
+}
+
 // Merge errors from another validator in to this one.
 func (v *Validator) Merge(other Validator) {
 	for k, val := range other.Errors {

@@ -529,3 +529,26 @@ func TestBoolean(t *testing.T) {
 		})
 	}
 }
+
+func TestErrorOrNil(t *testing.T) {
+	cases := []struct {
+		in   *Validator
+		want error
+	}{
+		{&Validator{}, nil},
+		{&Validator{Errors: map[string][]string{}}, nil},
+		{
+			&Validator{Errors: map[string][]string{"x": []string{"X"}}},
+			&Validator{Errors: map[string][]string{"x": []string{"X"}}},
+		},
+	}
+
+	for i, tc := range cases {
+		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
+			got := tc.in.ErrorOrNil()
+			if !reflect.DeepEqual(got, tc.want) {
+				t.Errorf("\nout:  %#v\nwant: %#v\n", got, tc.want)
+			}
+		})
+	}
+}
