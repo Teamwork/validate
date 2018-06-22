@@ -153,6 +153,14 @@ func (v *Validator) Required(key string, value interface{}, message ...string) {
 	}
 }
 
+// Custom is custom validation.
+func (v *Validator) Custom(key string, f func() bool, message ...string) {
+	msg := getMessage(message, fmt.Sprintf(MessageValid, key))
+	if !f() {
+		v.Append(key, msg)
+	}
+}
+
 var reValidDomain = regexp.MustCompile(`` +
 	// Anchor
 	`^` +
