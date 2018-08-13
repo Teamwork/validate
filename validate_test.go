@@ -264,6 +264,48 @@ func TestValidators(t *testing.T) {
 			map[string][]string{"v": {"must be a valid domain"}},
 		},
 
+		// URL
+		{
+			func(v Validator) { v.URL("v", "") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.URL("v", "example.com") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.URL("v", "example.com.test.asd/testing.html") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.URL("v", "example-test.com") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.URL("v", "ﻢﻔﺗﻮﺣ.ﺬﺑﺎﺑﺓ") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.URL("v", "xn--pgbg2dpr.xn--mgbbbe5a") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.URL("v", "one-label") },
+			map[string][]string{"v": {"must be a valid domain"}},
+		},
+		{
+			func(v Validator) { v.URL("v", "one-label", "foo") },
+			map[string][]string{"v": {"foo"}},
+		},
+		{
+			func(v Validator) { v.URL("v", "example.com:-)") },
+			map[string][]string{"v": {"no host given: example.com:-)"}},
+		},
+		{
+			func(v Validator) { v.URL("v", "ex ample.com") },
+			map[string][]string{"v": {"must be a valid url: parse http://ex%20ample.com: invalid URL escape \"%20\""}},
+		},
+
 		// HexColor
 		{
 			func(v Validator) { v.HexColor("v", "") },

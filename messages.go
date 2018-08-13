@@ -4,6 +4,7 @@ package validate
 var (
 	MessageRequired   = "must be set"
 	MessageDomain     = "must be a valid domain"
+	MessageURL        = "must be a valid url"
 	MessageEmail      = "must be a valid email address"
 	MessageIPv4       = "must be a valid IPv4 address"
 	MessageHexColor   = "must be a valid color code"
