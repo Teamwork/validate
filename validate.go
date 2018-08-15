@@ -36,6 +36,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
+	"net/url"
 	"regexp"
 	"sort"
 	"strconv"
@@ -153,23 +154,6 @@ func (v *Validator) Required(key string, value interface{}, message ...string) {
 	}
 }
 
-var reValidDomain = regexp.MustCompile(`` +
-	// Anchor
-	`^` +
-
-	// See RFC 1034, section 3.1, RFC 1035, secion 2.3.1
-	//
-	// - Only allow letters, numbers
-	// - Max size of a single label is 63 characters (RFC specifies bytes, but that's
-	//   not so easy to check AFAIK).
-	// - Need at least two labels
-	`[\p{L}\d-]{1,63}` + // Label
-	`(\.[\p{L}\d-]{1,63})+` + // More labels
-
-	// Anchor
-	`$`,
-)
-
 // Exclude validates that the value is not in the exclude list.
 //
 // This list is matched case-insensitive.
@@ -220,8 +204,69 @@ func (v *Validator) Domain(key, value string, message ...string) {
 	}
 
 	msg := getMessage(message, MessageDomain)
-	if !reValidDomain.MatchString(value) {
+	if !validDomain(value) {
 		v.Append(key, msg)
+	}
+}
+
+var reValidDomain = regexp.MustCompile(`` +
+	// Anchor
+	`^` +
+
+	// See RFC 1034, section 3.1, RFC 1035, secion 2.3.1
+	//
+	// - Only allow letters, numbers
+	// - Max size of a single label is 63 characters (RFC specifies bytes, but that's
+	//   not so easy to check AFAIK).
+	// - Need at least two labels
+	`[\p{L}\d-]{1,63}` + // Label
+	`(\.[\p{L}\d-]{1,63})+` + // More labels
+
+	// Anchor
+	`$`,
+)
+
+func validDomain(v string) bool {
+	return reValidDomain.MatchString(v)
+}
+
+// URL validates that the string contains a valid URL.  The scheme is optional.
+// The URL may consist of a scheme, host, path, and query parameters.  Only the
+// host is required.  If the scheme is not given it will be prepended.
+func (v *Validator) URL(key, value string, message ...string) {
+	if value == "" {
+		return
+	}
+
+	msg := getMessage(message, MessageURL)
+
+	u, err := url.Parse(value)
+	if err != nil && u == nil {
+		v.Append(key, "%s: %s", msg, err)
+		return
+	}
+
+	// If we don't have a scheme the parse may or may not fail according to the
+	// go docs. "Trying to parse a hostname and path without a scheme is invalid
+	// but may not necessarily return an error, due to parsing ambiguities."
+	if u.Scheme == "" {
+		u.Scheme = "http"
+		u, err = url.Parse(u.String())
+	}
+
+	if err != nil {
+		v.Append(key, "%s: %s", msg, err)
+		return
+	}
+
+	if u.Host == "" {
+		v.Append(key, msg)
+		return
+	}
+
+	if !validDomain(u.Host) {
+		v.Append(key, msg)
+		return
 	}
 }
 

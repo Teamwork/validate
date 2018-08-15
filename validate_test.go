@@ -264,6 +264,70 @@ func TestValidators(t *testing.T) {
 			map[string][]string{"v": {"must be a valid domain"}},
 		},
 
+		// URL
+		{
+			func(v Validator) { v.URL("v", "") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.URL("v", "example.com") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.URL("v", "example.com.test.asd/testing.html") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.URL("v", "example-test.com") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.URL("v", "ﻢﻔﺗﻮﺣ.ﺬﺑﺎﺑﺓ") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.URL("v", "xn--pgbg2dpr.xn--mgbbbe5a") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.URL("v", "http://x.com") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.URL("v", "unknownschema://x.com?q=v&x=2%3Aa#frag") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.URL("v", "complex://x.com") },
+			make(map[string][]string),
+		},
+
+		{
+			func(v Validator) { v.URL("v", "one-label") },
+			map[string][]string{"v": {"must be a valid url"}},
+		},
+		{
+			func(v Validator) { v.URL("v", "http://x") },
+			map[string][]string{"v": {"must be a valid url"}},
+		},
+		{
+			func(v Validator) { v.URL("v", "one-label", "foo") },
+			map[string][]string{"v": {"foo"}},
+		},
+		{
+			func(v Validator) { v.URL("v", "example.com:-)") },
+			map[string][]string{"v": {"must be a valid url"}},
+		},
+		{
+			func(v Validator) { v.URL("v", "ex ample.com") },
+			map[string][]string{"v": {"must be a valid url: parse http://ex%20ample.com: invalid URL escape \"%20\""}},
+		},
+		{
+			func(v Validator) { v.URL("v", "unknown_schema://x.com") },
+			map[string][]string{"v": {"must be a valid url: parse unknown_schema://x.com: " +
+				"first path segment in URL cannot contain colon"}},
+		},
+
 		// HexColor
 		{
 			func(v Validator) { v.HexColor("v", "") },
