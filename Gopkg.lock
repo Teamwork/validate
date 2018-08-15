@@ -3,29 +3,38 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:304c322b62533a48ac052ffee80f67087fce1bc07186cd4e610a1b0e77765836"
   name = "github.com/hashicorp/errwrap"
   packages = ["."]
+  pruneopts = ""
   revision = "7554cd9344cec97297fa6649b055a8c98c2a1e55"
 
 [[projects]]
   branch = "master"
+  digest = "1:b46ef59de1f724e8a2b508ea2b329eaf6cac4d71cbd44ad5e3dbd4e8fd49de9b"
   name = "github.com/hashicorp/go-multierror"
   packages = ["."]
+  pruneopts = ""
   revision = "b7773ae218740a7be65057fc60b366a49b538a44"
 
 [[projects]]
   branch = "master"
+  digest = "1:631151c2f67561bd1824b7fe8f23cf34a4951d7465380264eeb8a16fac05dd85"
   name = "github.com/teamwork/mailaddress"
   packages = ["."]
+  pruneopts = ""
   revision = "e0bce973c1a85a932776b0aed8919ac86dcd82d6"
 
 [[projects]]
   branch = "master"
+  digest = "1:ca24bfdf83d228ef34c43baa94a18942fbe783c4b631922c3fff945855798d37"
   name = "github.com/teamwork/toutf8"
   packages = ["."]
+  pruneopts = ""
   revision = "908c4b127591e39bd79a8214ca158a4f8baff682"
 
 [[projects]]
+  digest = "1:5acd3512b047305d49e8763eef7ba423901e85d5dd2fd1e71778a0ea8de10bd4"
   name = "golang.org/x/text"
   packages = [
     "encoding",
@@ -42,14 +51,15 @@
     "internal/utf8internal",
     "runes",
     "transform",
-    "unicode/cldr"
+    "unicode/cldr",
   ]
+  pruneopts = ""
   revision = "f21a4dfb5e38f5895301dc265a8def02365cc3d0"
   version = "v0.3.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c0f103a47507d2ef2918027fb09b232ff305ab0736ca97a84a0c725697e8337d"
+  input-imports = ["github.com/teamwork/mailaddress"]
   solver-name = "gps-cdcl"
   solver-version = 1
