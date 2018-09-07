@@ -427,6 +427,24 @@ func TestValidators(t *testing.T) {
 			func(v Validator) { v.IPv4("v", "::1") },
 			map[string][]string{"v": {"must be a valid IPv4 address"}},
 		},
+
+		// Phone
+		{
+			func(v Validator) { v.Phone("v", "") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.Phone("v", "12345123") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.Phone("v", "(+31)-12345123") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.Phone("v", "[+31]-12345123") },
+			map[string][]string{"v": {"must be a valid phone number"}},
+		},
 	}
 
 	for i, tc := range cases {
