@@ -15,6 +15,7 @@ var (
 	MessageInteger    = "must be a whole number"
 	MessageBool       = "must be a boolean"
 	MessageDate       = "must be a date as ‘%s’"
+	MessagePhone      = "must be a valid phone number"
 )
 
 func getMessage(in []string, def string) string {

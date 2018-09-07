@@ -376,3 +376,19 @@ func (v *Validator) Date(key, value, layout string, message ...string) {
 		}
 	}
 }
+
+var rePhone = regexp.MustCompile(`^[0123456789+\-() .]{5,20}$`)
+
+// Phone checks if the string looks like a valid phone number.
+//
+// https://en.wikipedia.org/wiki/National_conventions_for_writing_telephone_numbers
+func (v *Validator) Phone(key, value string, message ...string) {
+	if value == "" {
+		return
+	}
+
+	msg := getMessage(message, MessagePhone)
+	if !rePhone.MatchString(value) {
+		v.Append(key, msg)
+	}
+}
