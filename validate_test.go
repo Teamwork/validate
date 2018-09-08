@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/teamwork/mailaddress"
 )
 
 func TestMerge(t *testing.T) {
@@ -200,6 +201,22 @@ func TestValidators(t *testing.T) {
 		{
 			func(v Validator) { v.Required("k", false) },
 			map[string][]string{"k": {"must be set"}},
+		},
+
+		// Required mailaddress
+		{
+			func(v Validator) {
+				v.Required("k1", mailaddress.Address{})
+				v.Required("k2", mailaddress.List{})
+			},
+			map[string][]string{"k1": {"must be set"}, "k2": {"must be set"}},
+		},
+		{
+			func(v Validator) {
+				v.Required("k1", mailaddress.Address{Address: "foo@example.com"})
+				v.Required("k2", mailaddress.List{mailaddress.New("", "asd")})
+			},
+			make(map[string][]string),
 		},
 
 		// Len
