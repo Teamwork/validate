@@ -149,8 +149,16 @@ func (v *Validator) Required(key string, value interface{}, message ...string) {
 		if !val {
 			v.Append(key, msg)
 		}
+	case mailaddress.Address:
+		if val.Address == "" {
+			v.Append(key, msg)
+		}
+	case mailaddress.List:
+		if len(val) == 0 {
+			v.Append(key, msg)
+		}
 	default:
-		panic(fmt.Sprintf("not a supported type: %T", value))
+		panic(fmt.Sprintf("validate: not a supported type: %T", value))
 	}
 }
 
