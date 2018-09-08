@@ -99,6 +99,50 @@ func (v *Validator) ErrorOrNil() error {
 	return nil
 }
 
+// Sub allows to specific sub-validations.
+//
+// Errors from the subvalidation is merged with the top-level one, the keys are
+// added as "top.sub" or "top[n].sub".
+//
+// If the error is not a Validator the text will be added as just the key name
+// without subkey (i.e. the same as v.Append("key", "msg")).
+//
+// For example:
+//
+//   v := validate.New()
+//   v.Required("name", customer.Name)
+//
+//   // e.g. "settings.domain"
+//   v.Sub("settings", -1, customer.Settings.Validate())
+//
+//   // e.g. "addresses[1].city"
+//   for i, a := range customer.Addresses {
+//       a.Sub("addresses", i, c.Validate())
+//   }
+func (v *Validator) Sub(key string, n int, err error) {
+	if err == nil {
+		return
+	}
+
+	if n > -1 {
+		key = fmt.Sprintf("%s[%d]", key, n)
+	}
+
+	sub, ok := err.(Validator)
+	if !ok {
+		v.Append(key, err.Error())
+		return
+	}
+	if !sub.HasErrors() {
+		return
+	}
+
+	for k, val := range sub.Errors {
+		mk := fmt.Sprintf("%s.%s", key, k)
+		v.Errors[mk] = append(v.Errors[mk], val...)
+	}
+}
+
 // Merge errors from another validator in to this one.
 func (v *Validator) Merge(other Validator) {
 	for k, val := range other.Errors {

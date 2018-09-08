@@ -2,20 +2,33 @@
 
 
 [[projects]]
-  branch = "master"
-  digest = "1:304c322b62533a48ac052ffee80f67087fce1bc07186cd4e610a1b0e77765836"
+  digest = "1:f9f45f75f332e03fc7e9fe9188ea4e1ce4d14779ef34fa1b023da67518e36327"
+  name = "github.com/google/go-cmp"
+  packages = [
+    "cmp",
+    "cmp/internal/diff",
+    "cmp/internal/function",
+    "cmp/internal/value",
+  ]
+  pruneopts = ""
+  revision = "3af367b6b30c263d47e8895973edcca9a49cf029"
+  version = "v0.2.0"
+
+[[projects]]
+  digest = "1:8e3bd93036b4a925fe2250d3e4f38f21cadb8ef623561cd80c3c50c114b13201"
   name = "github.com/hashicorp/errwrap"
   packages = ["."]
   pruneopts = ""
-  revision = "7554cd9344cec97297fa6649b055a8c98c2a1e55"
+  revision = "8a6fb523712970c966eefc6b39ed2c5e74880354"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
-  digest = "1:b46ef59de1f724e8a2b508ea2b329eaf6cac4d71cbd44ad5e3dbd4e8fd49de9b"
+  digest = "1:72308fdd6d5ef61106a95be7ca72349a5565809042b6426a3cfb61d99483b824"
   name = "github.com/hashicorp/go-multierror"
   packages = ["."]
   pruneopts = ""
-  revision = "b7773ae218740a7be65057fc60b366a49b538a44"
+  revision = "886a7fbe3eb1c874d46f623bfa70af45f425b3d1"
 
 [[projects]]
   branch = "master"
@@ -60,6 +73,9 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  input-imports = ["github.com/teamwork/mailaddress"]
+  input-imports = [
+    "github.com/google/go-cmp/cmp",
+    "github.com/teamwork/mailaddress",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -1,10 +1,13 @@
 package validate
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func TestMerge(t *testing.T) {
@@ -52,6 +55,62 @@ func TestMerge(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestSub(t *testing.T) {
+	t.Run("ok", func(t *testing.T) {
+		v := New()
+		v.Required("name", "")
+		v.HexColor("color", "not a color")
+
+		// Easy case
+		s := New()
+		s.Required("domain", "")
+		s.Email("contactEmail", "not an email")
+		v.Sub("setting", -1, s)
+
+		// List
+		addr1 := New()
+		addr1.Required("city", "Bristol")
+		v.Sub("addresses", 0, addr1)
+		addr2 := New()
+		addr2.Required("city", "")
+		v.Sub("addresses", 1, addr2)
+
+		// Non-Validator.
+		v.Sub("other", -1, errors.New("oh noes"))
+		v.Sub("emails", 0, nil)
+		v.Sub("emails", 1, errors.New("not an email"))
+
+		// Sub with Sub.
+		s1 := New()
+		s2 := New()
+		s2.Append("err", "very sub")
+		s1.Sub("sub2", -1, s2)
+		v.Sub("sub1", -1, s1)
+
+		ls1 := New()
+		ls2 := New()
+		ls2.Append("err", "very sub")
+		ls1.Sub("lsub2", 3, ls2)
+		v.Sub("lsub1", -1, ls1)
+
+		want := map[string][]string{
+			"lsub1.lsub2[3].err":   []string{"very sub"},
+			"sub1.sub2.err":        []string{"very sub"},
+			"name":                 []string{"must be set"},
+			"color":                []string{"must be a valid color code"},
+			"setting.domain":       []string{"must be set"},
+			"setting.contactEmail": []string{"must be a valid email address"},
+			"addresses[1].city":    []string{"must be set"},
+			"other":                []string{"oh noes"},
+			"emails[1]":            []string{"not an email"},
+		}
+
+		if d := cmp.Diff(v.Errors, want); d != "" {
+			t.Errorf("(-got +want)\n:%s", d)
+		}
+	})
 }
 
 func TestString(t *testing.T) {
