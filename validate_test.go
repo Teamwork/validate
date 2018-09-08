@@ -68,7 +68,7 @@ func TestSub(t *testing.T) {
 		s := New()
 		s.Required("domain", "")
 		s.Email("contactEmail", "not an email")
-		v.Sub("setting", -1, s)
+		v.Sub("setting", -1, s.ErrorOrNil())
 
 		// List
 		addr1 := New()

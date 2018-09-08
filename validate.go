@@ -128,10 +128,14 @@ func (v *Validator) Sub(key string, n int, err error) {
 		key = fmt.Sprintf("%s[%d]", key, n)
 	}
 
-	sub, ok := err.(Validator)
+	sub, ok := err.(*Validator)
 	if !ok {
-		v.Append(key, err.Error())
-		return
+		ss, ok := err.(Validator)
+		if !ok {
+			v.Append(key, err.Error())
+			return
+		}
+		sub = &ss
 	}
 	if !sub.HasErrors() {
 		return
