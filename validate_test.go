@@ -8,7 +8,7 @@ import (
 )
 
 func TestMerge(t *testing.T) {
-	cases := []struct {
+	tests := []struct {
 		a, b, want map[string][]string
 	}{
 		{
@@ -38,24 +38,24 @@ func TestMerge(t *testing.T) {
 		},
 	}
 
-	for i, tc := range cases {
+	for i, tt := range tests {
 		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
 			in := New()
-			in.Errors = tc.a
+			in.Errors = tt.a
 			other := New()
-			other.Errors = tc.b
+			other.Errors = tt.b
 
 			in.Merge(other)
 
-			if !reflect.DeepEqual(tc.want, in.Errors) {
-				t.Errorf("\nout:  %#v\nwant: %#v\n", in.Errors, tc.want)
+			if !reflect.DeepEqual(tt.want, in.Errors) {
+				t.Errorf("\nout:  %#v\nwant: %#v\n", in.Errors, tt.want)
 			}
 		})
 	}
 }
 
 func TestString(t *testing.T) {
-	cases := []struct {
+	tests := []struct {
 		in   Validator
 		want string
 	}{
@@ -81,18 +81,18 @@ func TestString(t *testing.T) {
 		}}, "asd: oh no, more, even more.\nzxc: asd.\n"},
 	}
 
-	for i, tc := range cases {
+	for i, tt := range tests {
 		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
-			out := tc.in.String()
-			if out != tc.want {
-				t.Errorf("\nout:  %#v\nwant: %#v\n", out, tc.want)
+			out := tt.in.String()
+			if out != tt.want {
+				t.Errorf("\nout:  %#v\nwant: %#v\n", out, tt.want)
 			}
 		})
 	}
 }
 
 func TestValidators(t *testing.T) {
-	cases := []struct {
+	tests := []struct {
 		val        func(Validator)
 		wantErrors map[string][]string
 	}{
@@ -447,20 +447,20 @@ func TestValidators(t *testing.T) {
 		},
 	}
 
-	for i, tc := range cases {
+	for i, tt := range tests {
 		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
 			v := New()
-			tc.val(v)
+			tt.val(v)
 
-			if !reflect.DeepEqual(v.Errors, tc.wantErrors) {
-				t.Errorf("\nout:  %#v\nwant: %#v\n", v.Errors, tc.wantErrors)
+			if !reflect.DeepEqual(v.Errors, tt.wantErrors) {
+				t.Errorf("\nout:  %#v\nwant: %#v\n", v.Errors, tt.wantErrors)
 			}
 		})
 	}
 }
 
 func TestInteger(t *testing.T) {
-	cases := []struct {
+	tests := []struct {
 		val        func(Validator) int64
 		want       int64
 		wantErrors map[string][]string
@@ -502,24 +502,24 @@ func TestInteger(t *testing.T) {
 		},
 	}
 
-	for i, tc := range cases {
+	for i, tt := range tests {
 		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
 			v := New()
-			i := tc.val(v)
+			i := tt.val(v)
 
-			if !reflect.DeepEqual(v.Errors, tc.wantErrors) {
-				t.Errorf("\nout:  %#v\nwant: %#v\n", v.Errors, tc.wantErrors)
+			if !reflect.DeepEqual(v.Errors, tt.wantErrors) {
+				t.Errorf("\nout:  %#v\nwant: %#v\n", v.Errors, tt.wantErrors)
 			}
 
-			if i != tc.want {
-				t.Errorf("\nout:  %#v\nwant: %#v\n", i, tc.want)
+			if i != tt.want {
+				t.Errorf("\nout:  %#v\nwant: %#v\n", i, tt.want)
 			}
 		})
 	}
 }
 
 func TestBoolean(t *testing.T) {
-	cases := []struct {
+	tests := []struct {
 		val        func(Validator) bool
 		want       bool
 		wantErrors map[string][]string
@@ -596,24 +596,24 @@ func TestBoolean(t *testing.T) {
 		},
 	}
 
-	for i, tc := range cases {
+	for i, tt := range tests {
 		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
 			v := New()
-			i := tc.val(v)
+			i := tt.val(v)
 
-			if !reflect.DeepEqual(v.Errors, tc.wantErrors) {
-				t.Errorf("\nout:  %#v\nwant: %#v\n", v.Errors, tc.wantErrors)
+			if !reflect.DeepEqual(v.Errors, tt.wantErrors) {
+				t.Errorf("\nout:  %#v\nwant: %#v\n", v.Errors, tt.wantErrors)
 			}
 
-			if i != tc.want {
-				t.Errorf("\nout:  %#v\nwant: %#v\n", i, tc.want)
+			if i != tt.want {
+				t.Errorf("\nout:  %#v\nwant: %#v\n", i, tt.want)
 			}
 		})
 	}
 }
 
 func TestErrorOrNil(t *testing.T) {
-	cases := []struct {
+	tests := []struct {
 		in   *Validator
 		want error
 	}{
@@ -625,11 +625,11 @@ func TestErrorOrNil(t *testing.T) {
 		},
 	}
 
-	for i, tc := range cases {
+	for i, tt := range tests {
 		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
-			got := tc.in.ErrorOrNil()
-			if !reflect.DeepEqual(got, tc.want) {
-				t.Errorf("\nout:  %#v\nwant: %#v\n", got, tc.want)
+			got := tt.in.ErrorOrNil()
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("\nout:  %#v\nwant: %#v\n", got, tt.want)
 			}
 		})
 	}
