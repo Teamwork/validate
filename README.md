@@ -10,8 +10,8 @@ Basic usage example:
 	v.Required("firstName", customer.FirstName)
 	if v.HasErrors() {
 		fmt.Println("Had the following validation errors:")
-		for range key, errors := v.Errors {
-			fmt.Printf("    %v: %v", key, strings.Join(errors))
+		for key, errors := range v.Errors {
+			fmt.Printf("    %s: %s", key, strings.Join(errors))
 		}
 	}
 

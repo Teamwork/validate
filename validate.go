@@ -6,8 +6,8 @@
 //   v.Required("firstName", customer.FirstName)
 //   if v.HasErrors() {
 //       fmt.Println("Had the following validation errors:")
-//       for range key, errors := v.Errors {
-//           fmt.Printf("    %v: %v", key, strings.Join(errors))
+//       for key, errors := range v.Errors {
+//           fmt.Printf("    %s: %s", key, strings.Join(errors))
 //       }
 //   }
 //
@@ -20,10 +20,10 @@
 //
 // The error text only includes a simple human description such as "must be set"
 // or "must be a valid email". When adding new validations, make sure that they
-// can be displayed properly when joined with comma's. A text such as "Error:
-// this field must be high than 42" would look weird:
+// can be displayed properly when joined with commas. A text such as "Error:
+// this field must be higher than 42" would look weird:
 //
-//   must be set, Error: this field must be high than 42
+//   must be set, Error: this field must be higher than 42
 //
 // You can set your own errors with v.Append("key", "message"):
 //
