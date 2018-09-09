@@ -162,13 +162,13 @@ func (v *Validator) String() string {
 	}
 
 	// Make sure the order is always the same.
-	keys := make(sort.StringSlice, len(v.Errors))
+	keys := make([]string, len(v.Errors))
 	i := 0
 	for k := range v.Errors {
 		keys[i] = k
 		i++
 	}
-	sort.Sort(keys)
+	sort.Strings(keys)
 
 	var b strings.Builder
 	for _, k := range keys {
