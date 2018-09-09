@@ -172,7 +172,7 @@ func (v *Validator) String() string {
 
 	var b strings.Builder
 	for _, k := range keys {
-		s := fmt.Sprintf("%v: %v.\n", k, strings.Join(v.Errors[k], ", "))
+		s := fmt.Sprintf("%s: %s.\n", k, strings.Join(v.Errors[k], ", "))
 		b.WriteString(s)
 
 	}
