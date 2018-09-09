@@ -151,6 +151,22 @@ func TestString(t *testing.T) {
 	}
 }
 
+func BenchmarkString(b *testing.B) {
+	v := New()
+	noOfErrors := 256
+	const err = "Oh no!"
+	for i := 0; i < noOfErrors; i++ {
+		key := fmt.Sprintf("err%d", i)
+		v.Append(key, err)
+	}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		_ = v.String()
+	}
+}
+
 func TestValidators(t *testing.T) {
 	tests := []struct {
 		val        func(Validator)
