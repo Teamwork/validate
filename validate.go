@@ -1,4 +1,4 @@
-// Package validate provides validation for HTTP request parameters.
+// Package validate provides simple validation for Go.
 //
 // Basic usage example:
 //
@@ -25,11 +25,21 @@
 //
 //   must be set, Error: this field must be higher than 42
 //
-// You can set your own errors with v.Append("key", "message"):
+// You can set your own errors with v.Append():
 //
 //   if !condition {
 //       v.Append("key", "must be a valid foo")
 //   }
+//
+// Some validators return the parsed value, which makes it easier both validate
+// and get a useful value at the same time:
+//
+//   v := validate.New()
+//   id := v.Integer("id", c.Param("id"))
+//   if v.HasErrors() {
+//       return v
+//   }
+//   user := getUserByID(id)
 package validate // import "github.com/teamwork/validate"
 
 import (
@@ -63,8 +73,8 @@ func New() Validator {
 // Error interface.
 func (v Validator) Error() string { return v.String() }
 
-// Code for the error. Satisfies the guru.coder interface in
-// github.com/teamwork/guru.
+// Code returns the HTTP status code for the error. Satisfies the guru.coder
+// interface in github.com/teamwork/guru.
 func (v Validator) Code() int { return 400 }
 
 // ErrorJSON for reporting errors as JSON.
@@ -254,8 +264,18 @@ func (v *Validator) Include(key, value string, include []string, message ...stri
 	}
 }
 
-// Domain validates that the domain is valid. A domain must consist of at least
-// two labels (so "com" in not valid, whereas "example.com" is).
+// Domain validates that the domain is valid.
+//
+// A domain must consist of at least two labels. So "com" or "localhost" – while
+// technically valid domain names – are not accepted, whereas "example.com" or
+// "me.localhost" are. For the overwhelming majority of applications this makes
+// the most sense.
+//
+// This works for internationalized domain names (IDN), either as UTF-8
+// characters or as punycode.
+//
+// Limitation: the RFC limits domain labels to 63 bytes, but this validation
+// accepts labels up to 63 *characters*.
 func (v *Validator) Domain(key, value string, message ...string) {
 	if value == "" {
 		return
@@ -288,12 +308,17 @@ func validDomain(v string) bool {
 	return reValidDomain.MatchString(v)
 }
 
-// URL validates that the string contains a valid URL.  The scheme is optional.
-// The URL may consist of a scheme, host, path, and query parameters.  Only the
-// host is required.  If the scheme is not given it will be prepended.
-func (v *Validator) URL(key, value string, message ...string) {
+// URL validates that the string contains a valid URL.
+//
+// The URL may consist of a scheme, host, path, and query parameters. Only the
+// host is required.
+//
+// The host is validated with the Domain() validation.
+//
+// If the scheme is not given "http" will be prepended.
+func (v *Validator) URL(key, value string, message ...string) *url.URL {
 	if value == "" {
-		return
+		return nil
 	}
 
 	msg := getMessage(message, MessageURL)
@@ -301,7 +326,7 @@ func (v *Validator) URL(key, value string, message ...string) {
 	u, err := url.Parse(value)
 	if err != nil && u == nil {
 		v.Append(key, "%s: %s", msg, err)
-		return
+		return nil
 	}
 
 	// If we don't have a scheme the parse may or may not fail according to the
@@ -314,21 +339,23 @@ func (v *Validator) URL(key, value string, message ...string) {
 
 	if err != nil {
 		v.Append(key, "%s: %s", msg, err)
-		return
+		return nil
 	}
 
 	if u.Host == "" {
 		v.Append(key, msg)
-		return
+		return nil
 	}
 
 	if !validDomain(u.Host) {
 		v.Append(key, msg)
-		return
+		return nil
 	}
+
+	return u
 }
 
-// Email gives an error if this does not look like a valid email address.
+// Email validates if this email looks like a valid email address.
 func (v *Validator) Email(key, value string, message ...string) mailaddress.Address {
 	if value == "" {
 		return mailaddress.Address{}
@@ -373,7 +400,7 @@ func (v *Validator) HexColor(key, value string, message ...string) {
 
 // Len sets the minimum and maximum length for a string.
 //
-// The maximum length can be 0, indicating there is no upper limit.
+// A maximum of 0 indicates there is no upper limit.
 func (v *Validator) Len(key, value string, min, max int, message ...string) {
 	msg := getMessage(message, "")
 
@@ -439,7 +466,11 @@ var rePhone = regexp.MustCompile(`^[0123456789+\-() .]{5,20}$`)
 
 // Phone checks if the string looks like a valid phone number.
 //
+// There are a great amount of writing conventions for phone numbers:
 // https://en.wikipedia.org/wiki/National_conventions_for_writing_telephone_numbers
+//
+// This merely checks a field contains 5 to 20 characters "0123456789+\-() .",
+// which is not very strict but should cover all conventions.
 func (v *Validator) Phone(key, value string, message ...string) {
 	if value == "" {
 		return

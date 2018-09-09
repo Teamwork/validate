@@ -23,13 +23,6 @@ lint_ignore="${lint_ignore:-}"
 # Don't check for changes in generated files with ./bin/lint.
 lint_skip_generate="${lint_skip_generate:-0}"
 
-# go test covermode
-#
-# set: bool: does this statement run?
-# count: int: how many times does this statement run?
-# atomic: int: count, but correct in multithreaded tests; significantly more expensive.
-test_covermode=${test_covermode:-count}
-
 ###
 # For the following the defaults should almost always be okay. If not, then
 # consider fixing the project maybe?

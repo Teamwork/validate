@@ -48,6 +48,8 @@ if [ -n "${TRAVIS:-}" -a ${lint_skip_generate:-0} = 0 ]; then
 	fi
 fi
 
+export GO111MODULE=off
+
 if [ -n "$TRAVIS" ]; then
 	# Install gometalinter if not found.
 	command -v gometalinter >/dev/null || go get -u github.com/alecthomas/gometalinter
@@ -67,5 +69,6 @@ gometalinter --deadline=240s --vendor --sort=path --tests --disable-all \
 	--enable=unconvert \
 	--enable=goconst \
 	--enable=goimports \
+	--enable=misspell \
 	--enable=lll --line-length=120 \
 	"$@"
