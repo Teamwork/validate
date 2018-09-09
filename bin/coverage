@@ -13,7 +13,6 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 ############
 
 "$root/bin/test" \
-	-covermode=${test_covermode:-count} \
 	-coverprofile=coverage.txt \
 	-coverpkg=./... \
 	"$@"
@@ -24,3 +23,5 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 # Submit reports only on Travis.
 [ -n "${TRAVIS:-}" ] && \
 	./bin/.codecov -X gcov -X coveragepy -X search -K -f coverage.txt
+
+exit 0
