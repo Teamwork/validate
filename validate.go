@@ -6,8 +6,8 @@
 //   v.Required("firstName", customer.FirstName)
 //   if v.HasErrors() {
 //       fmt.Println("Had the following validation errors:")
-//       for range key, errors := v.Errors {
-//           fmt.Printf("    %v: %v", key, strings.Join(errors))
+//       for key, errors := range v.Errors {
+//           fmt.Printf("    %s: %s", key, strings.Join(errors))
 //       }
 //   }
 //
@@ -20,10 +20,10 @@
 //
 // The error text only includes a simple human description such as "must be set"
 // or "must be a valid email". When adding new validations, make sure that they
-// can be displayed properly when joined with comma's. A text such as "Error:
-// this field must be high than 42" would look weird:
+// can be displayed properly when joined with commas. A text such as "Error:
+// this field must be higher than 42" would look weird:
 //
-//   must be set, Error: this field must be high than 42
+//   must be set, Error: this field must be higher than 42
 //
 // You can set your own errors with v.Append("key", "message"):
 //
@@ -162,19 +162,21 @@ func (v *Validator) String() string {
 	}
 
 	// Make sure the order is always the same.
-	keys := make(sort.StringSlice, len(v.Errors))
+	keys := make([]string, len(v.Errors))
 	i := 0
 	for k := range v.Errors {
 		keys[i] = k
 		i++
 	}
-	sort.Sort(keys)
+	sort.Strings(keys)
 
-	s := ""
+	var b strings.Builder
 	for _, k := range keys {
-		s += fmt.Sprintf("%v: %v.\n", k, strings.Join(v.Errors[k], ", "))
+		s := fmt.Sprintf("%s: %s.\n", k, strings.Join(v.Errors[k], ", "))
+		b.WriteString(s)
+
 	}
-	return s
+	return b.String()
 }
 
 // Required indicates that this value must not be the type's zero value.
