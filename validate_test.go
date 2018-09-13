@@ -11,6 +11,33 @@ import (
 	"github.com/teamwork/mailaddress"
 )
 
+func TestRequiredInt(t *testing.T) {
+	tests := []struct {
+		a    interface{}
+		want bool
+	}{
+		{0, true},
+		{int64(0), true},
+		{uint(0), true},
+		{uint64(0), true},
+		{1, false},
+		{int64(1), false},
+		{uint(1), false},
+		{uint64(1), false},
+	}
+
+	for i, tt := range tests {
+		name := fmt.Sprintf("%v", i)
+		t.Run(name, func(t *testing.T) {
+			v := New()
+			v.Required(name, tt.a)
+			if got := v.HasErrors(); got != tt.want {
+				t.Errorf("\ngot:  %#v\nwant: %#v\n", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestMerge(t *testing.T) {
 	tests := []struct {
 		a, b, want map[string][]string
