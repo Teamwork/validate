@@ -206,7 +206,7 @@ func (v *Validator) Required(key string, value interface{}, message ...string) {
 			v.Append(key, msg)
 		}
 	case int64:
-		if int64(val) == int64(0) {
+		if val == int64(0) {
 			v.Append(key, msg)
 		}
 	case uint:
