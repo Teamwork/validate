@@ -1,13 +1,14 @@
 #!/bin/bash
 #
-# Generated from https://github.com/Teamwork/skel-go
+# Generated from https://github.com/Teamwork/strut
 # DO NOT EDIT DIRECTLY!
 
 # Setup
 #######
 set -euC
 root="$(cd "$(dirname "$0")/.." && pwd)"
-. "$root/bin/start"
+# shellcheck source=load-settings
+. "$root/bin/load-settings"
 
 # Run action
 ############
@@ -21,7 +22,7 @@ root="$(cd "$(dirname "$0")/.." && pwd)"
 [ -n "${codecov_token:-}" ] && export CODECOV_TOKEN="$codecov_token"
 
 # Submit reports only on Travis.
-[ -n "${TRAVIS:-}" ] && \
+[ -n "${TRAVIS:-}" ] &&
 	./bin/.codecov -X gcov -X coveragepy -X search -K -f coverage.txt
 
 exit 0
