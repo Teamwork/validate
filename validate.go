@@ -232,6 +232,20 @@ func (v *Validator) Required(key string, value interface{}, message ...string) {
 	case []string:
 		if len(val) == 0 {
 			v.Append(key, msg)
+			return
+		}
+
+		// Make sure there is at least one non-empty entry.
+		nonEmpty := false
+		for i := range val {
+			if val[i] != "" { // Consider " " to be non-empty on purpose.
+				nonEmpty = true
+				break
+			}
+		}
+
+		if !nonEmpty {
+			v.Append(key, msg)
 		}
 	default:
 		panic(fmt.Sprintf("validate: not a supported type: %T", value))
