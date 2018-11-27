@@ -5,4 +5,4 @@ comment:
 
 # We don't care about anything that is not a Go file or generated files.
 # https://docs.codecov.io/docs/ignoring-paths
-ignore: ["!*.go", "**/generated_*.go"]
+ignore: ["!*.go", "**/generated_*.go", "factory/factorygen/main.go"]

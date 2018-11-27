@@ -8,10 +8,17 @@ notifications:
 cache:
   directories:
     - $HOME/.cache/go-build
-install:
-  - ./bin/setup-travis
-script:
-  - cd $HOME/gopath/src/github.com/teamwork/validate
-  - "[ -f go.sum ] && export GO111MODULE=on"
-  - ./bin/coverage -race ./...
-  - env GO111MODULE=off ./bin/lint ./...
+    - $HOME/gopath/bin
+
+install: |
+  ./bin/setup-travis
+
+script: |
+  set -e
+  cd $HOME/gopath/src/github.com/teamwork/validate
+  [ -f go.sum ] && export GO111MODULE=on ||:
+  ./bin/coverage -race ./...
+  env GO111MODULE=off ./bin/lint ./...
+
+before_cache: |
+  rm "$HOME/.cache/go-build/log.txt"
