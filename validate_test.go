@@ -444,6 +444,10 @@ func TestValidators(t *testing.T) {
 			func(v Validator) { v.URL("v", "complex://x.com") },
 			make(map[string][]string),
 		},
+		{
+			func(v Validator) { v.URL("v", "http://sunbeam.teamwork.localhost:9000/bucket/1/avatar-1.jpeg") },
+			make(map[string][]string),
+		},
 
 		{
 			func(v Validator) { v.URL("v", "one-label") },
