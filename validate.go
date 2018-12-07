@@ -54,6 +54,7 @@ import (
 	"time"
 
 	"github.com/teamwork/mailaddress"
+	"github.com/teamwork/utils/netutil"
 )
 
 // Validator hold the validation errors.
@@ -377,7 +378,7 @@ func (v *Validator) URL(key, value string, message ...string) *url.URL {
 		return nil
 	}
 
-	if !validDomain(u.Host) {
+	if !validDomain(netutil.RemovePort(u.Host)) {
 		v.Append(key, msg)
 		return nil
 	}

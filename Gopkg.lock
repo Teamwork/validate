@@ -47,6 +47,14 @@
   revision = "908c4b127591e39bd79a8214ca158a4f8baff682"
 
 [[projects]]
+  branch = "master"
+  digest = "1:ec96c8932455d8cd502fde27727faab8df592575bff1861d3db33a9eb183500d"
+  name = "github.com/teamwork/utils"
+  packages = ["netutil"]
+  pruneopts = ""
+  revision = "702eaeaa40eb69acd27321b08e065e7ea4369be2"
+
+[[projects]]
   digest = "1:5acd3512b047305d49e8763eef7ba423901e85d5dd2fd1e71778a0ea8de10bd4"
   name = "golang.org/x/text"
   packages = [
@@ -76,6 +84,7 @@
   input-imports = [
     "github.com/google/go-cmp/cmp",
     "github.com/teamwork/mailaddress",
+    "github.com/teamwork/utils/netutil",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
