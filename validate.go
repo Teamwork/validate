@@ -112,7 +112,7 @@ func (v *Validator) ErrorOrNil() error {
 
 // Sub allows to specific sub-validations.
 //
-// Errors from the subvalidation is merged with the top-level one, the keys are
+// Errors from the subvalidation are merged with the top-level one, the keys are
 // added as "top.sub" or "top[n].sub".
 //
 // If the error is not a Validator the text will be added as just the key name
@@ -130,13 +130,13 @@ func (v *Validator) ErrorOrNil() error {
 //   for i, a := range customer.Addresses {
 //       a.Sub("addresses", i, c.Validate())
 //   }
-func (v *Validator) Sub(key string, n int, err error) {
+func (v *Validator) Sub(key, subKey string, err error) {
 	if err == nil {
 		return
 	}
 
-	if n > -1 {
-		key = fmt.Sprintf("%s[%d]", key, n)
+	if subKey != "" {
+		key = fmt.Sprintf("%s[%s]", key, subKey)
 	}
 
 	sub, ok := err.(*Validator)
