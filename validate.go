@@ -47,6 +47,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"reflect"
 	"regexp"
 	"sort"
 	"strconv"
@@ -429,25 +430,40 @@ func (v *Validator) HexColor(key, value string, message ...string) {
 	}
 }
 
-// Len sets the minimum and maximum length for a string.
-//
+// Len validates the minimum and maximum length.
+// It fails when the value's type does not allow length evaluation.
 // A maximum of 0 indicates there is no upper limit.
-func (v *Validator) Len(key, value string, min, max int, message ...string) {
+func (v *Validator) Len(key string, value interface{}, min, max int, message ...string) {
 	msg := getMessage(message, "")
+	t := reflect.TypeOf(value)
+	k := t.Kind()
+	val := reflect.ValueOf(value)
 
-	switch {
-	case len(value) < min:
-		if msg != "" {
-			v.Append(key, msg)
-		} else {
-			v.Append(key, fmt.Sprintf(MessageLenLonger, min))
+	switch k {
+	case reflect.String,
+		reflect.Slice,
+		reflect.Map,
+		reflect.Array,
+		reflect.Chan:
+
+		if val.Len() < min {
+			if msg != "" {
+				v.Append(key, msg)
+			} else {
+				v.Append(key, fmt.Sprintf(MessageLenLonger, min))
+			}
 		}
-	case max > 0 && len(value) > max:
-		if msg != "" {
-			v.Append(key, msg)
-		} else {
-			v.Append(key, fmt.Sprintf(MessageLenShorter, max))
+
+		if max > 0 && val.Len() > max {
+			if msg != "" {
+				v.Append(key, msg)
+			} else {
+				v.Append(key, fmt.Sprintf(MessageLenShorter, max))
+			}
 		}
+
+	default:
+		v.Append(key, fmt.Sprintf(MessageLenInvalidType, k.String()))
 	}
 }
 

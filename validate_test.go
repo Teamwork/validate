@@ -286,7 +286,7 @@ func TestValidators(t *testing.T) {
 			make(map[string][]string),
 		},
 
-		// Len
+		// Len - string
 		{
 			func(v Validator) { v.Len("v", "w00t", 2, 5) },
 			make(map[string][]string),
@@ -301,7 +301,7 @@ func TestValidators(t *testing.T) {
 		},
 		{
 			func(v Validator) { v.Len("v", "w00t", 1, 2) },
-			map[string][]string{"v": {"must be shorter than 2 characters"}},
+			map[string][]string{"v": {"must be shorter than 2"}},
 		},
 		{
 			func(v Validator) { v.Len("v", "w00t", 1, 2, "foo") },
@@ -309,7 +309,162 @@ func TestValidators(t *testing.T) {
 		},
 		{
 			func(v Validator) { v.Len("v", "w00t", 16, 32) },
-			map[string][]string{"v": {"must be longer than 16 characters"}},
+			map[string][]string{"v": {"must be longer than 16"}},
+		},
+		{
+			func(v Validator) { v.Len("v", "w00t", 16, 32, "foo") },
+			map[string][]string{"v": {"foo"}},
+		},
+
+		// Len - slice
+		{
+			func(v Validator) { v.Len("foo", []int{1, 2}, 1, 3) },
+			map[string][]string{},
+		},
+		{
+			func(v Validator) { v.Len("foo", []int{1, 2}, 0, 3) },
+			map[string][]string{},
+		},
+		{
+			func(v Validator) { v.Len("foo", []int{1, 2}, 2, 0) },
+			map[string][]string{},
+		},
+		{
+			func(v Validator) { v.Len("foo", []int{}, 1, 0, "msg") },
+			map[string][]string{"foo": []string{"msg"}},
+		},
+		{
+			func(v Validator) { v.Len("foo", []int{}, 1, 0) },
+			map[string][]string{"foo": []string{"must be longer than 1"}},
+		},
+		{
+			func(v Validator) { v.Len("foo", []int{3, 4}, 0, 1, "msg") },
+			map[string][]string{"foo": []string{"msg"}},
+		},
+		{
+			func(v Validator) { v.Len("foo", []int{3, 4}, 0, 1) },
+			map[string][]string{"foo": []string{"must be shorter than 1"}},
+		},
+
+		// Len - map
+		{
+			func(v Validator) { v.Len("foo", map[int]int{1: 1, 2: 2}, 1, 3) },
+			map[string][]string{},
+		},
+		{
+			func(v Validator) { v.Len("foo", map[int]int{1: 1, 2: 2}, 0, 3) },
+			map[string][]string{},
+		},
+		{
+			func(v Validator) { v.Len("foo", map[int]int{1: 1, 2: 2}, 2, 0) },
+			map[string][]string{},
+		},
+		{
+			func(v Validator) { v.Len("foo", map[int]int{}, 1, 0, "msg") },
+			map[string][]string{"foo": []string{"msg"}},
+		},
+		{
+			func(v Validator) { v.Len("foo", map[int]int{}, 1, 0) },
+			map[string][]string{"foo": []string{"must be longer than 1"}},
+		},
+		{
+			func(v Validator) { v.Len("foo", map[int]int{1: 1, 2: 2}, 0, 1, "msg") },
+			map[string][]string{"foo": []string{"msg"}},
+		},
+		{
+			func(v Validator) { v.Len("foo", map[int]int{1: 1, 2: 2}, 0, 1) },
+			map[string][]string{"foo": []string{"must be shorter than 1"}},
+		},
+
+		// Len - array
+		{
+			func(v Validator) { v.Len("foo", [2]int{}, 1, 3) },
+			map[string][]string{},
+		},
+		{
+			func(v Validator) { v.Len("foo", [2]int{}, 0, 3) },
+			map[string][]string{},
+		},
+		{
+			func(v Validator) { v.Len("foo", [2]int{}, 2, 0) },
+			map[string][]string{},
+		},
+		{
+			func(v Validator) { v.Len("foo", [0]int{}, 1, 0, "msg") },
+			map[string][]string{"foo": []string{"msg"}},
+		},
+		{
+			func(v Validator) { v.Len("foo", [0]int{}, 1, 0) },
+			map[string][]string{"foo": []string{"must be longer than 1"}},
+		},
+		{
+			func(v Validator) { v.Len("foo", [2]int{}, 0, 1, "msg") },
+			map[string][]string{"foo": []string{"msg"}},
+		},
+		{
+			func(v Validator) { v.Len("foo", [2]int{}, 0, 1) },
+			map[string][]string{"foo": []string{"must be shorter than 1"}},
+		},
+
+		// Len - channel
+		{
+			func(v Validator) {
+				c := make(chan int, 3)
+				c <- 1
+				c <- 2
+				v.Len("foo", c, 1, 3)
+			},
+			map[string][]string{},
+		},
+		{
+			func(v Validator) {
+				c := make(chan int, 3)
+				c <- 1
+				c <- 2
+				v.Len("foo", c, 0, 3)
+			},
+			map[string][]string{},
+		},
+		{
+			func(v Validator) {
+				c := make(chan int, 3)
+				c <- 1
+				c <- 2
+				v.Len("foo", c, 2, 0)
+			},
+			map[string][]string{},
+		},
+		{
+			func(v Validator) { v.Len("foo", make(chan int), 1, 0, "msg") },
+			map[string][]string{"foo": []string{"msg"}},
+		},
+		{
+			func(v Validator) { v.Len("foo", make(chan int), 1, 0) },
+			map[string][]string{"foo": []string{"must be longer than 1"}},
+		},
+		{
+			func(v Validator) {
+				c := make(chan int, 3)
+				c <- 1
+				c <- 2
+				v.Len("foo", c, 0, 1, "msg")
+			},
+			map[string][]string{"foo": []string{"msg"}},
+		},
+		{
+			func(v Validator) {
+				c := make(chan int, 3)
+				c <- 1
+				c <- 2
+				v.Len("foo", c, 0, 1)
+			},
+			map[string][]string{"foo": []string{"must be shorter than 1"}},
+		},
+
+		// Len - invalid
+		{
+			func(v Validator) { v.Len("foo", 1, 0, 0, "msg") },
+			map[string][]string{"foo": []string{"cannot validate length of type int"}},
 		},
 
 		// Exclude
