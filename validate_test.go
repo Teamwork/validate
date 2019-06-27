@@ -592,6 +592,32 @@ func TestValidators(t *testing.T) {
 			func(v Validator) { v.Phone("v", "[+31]-12345123") },
 			map[string][]string{"v": {"must be a valid phone number"}},
 		},
+
+		// Range
+		{
+			func(v Validator) { v.Range("v", 4, 2, 5) },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.Range("v", 4, 4, 0) },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.Range("v", 4, 0, 4) },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.Range("v", 4, 1, 2) },
+			map[string][]string{"v": {"must be lower than 2"}},
+		},
+		{
+			func(v Validator) { v.Range("v", 4, 1, 2, "foo") },
+			map[string][]string{"v": {"foo"}},
+		},
+		{
+			func(v Validator) { v.Range("v", 4, 16, 32) },
+			map[string][]string{"v": {"must be higher than 16"}},
+		},
 	}
 
 	for i, tt := range tests {
