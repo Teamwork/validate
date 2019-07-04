@@ -516,3 +516,25 @@ func (v *Validator) Phone(key, value string, message ...string) {
 		v.Append(key, msg)
 	}
 }
+
+// Range sets the minimum and maximum value of a integer.
+//
+// A maximum of 0 indicates there is no upper limit.
+func (v *Validator) Range(key string, value, min, max int64, message ...string) {
+	msg := getMessage(message, "")
+
+	if value < min {
+		if msg != "" {
+			v.Append(key, msg)
+		} else {
+			v.Append(key, fmt.Sprintf(MessageRangeHigher, min))
+		}
+	}
+	if max > 0 && value > max {
+		if msg != "" {
+			v.Append(key, msg)
+		} else {
+			v.Append(key, fmt.Sprintf(MessageRangeLower, max))
+		}
+	}
+}
