@@ -434,7 +434,8 @@ func (v *Validator) HexColor(key, value string, message ...string) {
 	}
 }
 
-// Len sets the minimum and maximum length for a string.
+// Len sets the minimum and maximum length for a string in characters, not in
+// bytes.
 //
 // A maximum of 0 indicates there is no upper limit.
 func (v *Validator) Len(key, value string, min, max int, message ...string) {
