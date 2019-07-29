@@ -439,14 +439,16 @@ func (v *Validator) HexColor(key, value string, message ...string) {
 func (v *Validator) Len(key, value string, min, max int, message ...string) {
 	msg := getMessage(message, "")
 
+	runeVal := []rune(value)
+
 	switch {
-	case len(value) < min:
+	case len(runeVal) < min:
 		if msg != "" {
 			v.Append(key, msg)
 		} else {
 			v.Append(key, fmt.Sprintf(MessageLenLonger, min))
 		}
-	case max > 0 && len(value) > max:
+	case max > 0 && len(runeVal) > max:
 		if msg != "" {
 			v.Append(key, msg)
 		} else {
