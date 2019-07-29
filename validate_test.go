@@ -311,7 +311,10 @@ func TestValidators(t *testing.T) {
 			func(v Validator) { v.Len("v", "w00t", 16, 32) },
 			map[string][]string{"v": {"must be longer than 16 characters"}},
 		},
-
+		{
+			func(v Validator) { v.Len("v", "ราคาเหนือจอง", 12, 12) },
+			make(map[string][]string),
+		},
 		// Exclude
 		{
 			func(v Validator) { v.Exclude("key", "val", []string{}) },
