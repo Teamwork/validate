@@ -52,6 +52,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/teamwork/mailaddress"
 )
@@ -439,16 +440,16 @@ func (v *Validator) HexColor(key, value string, message ...string) {
 func (v *Validator) Len(key, value string, min, max int, message ...string) {
 	msg := getMessage(message, "")
 
-	runeVal := []rune(value)
+	length := utf8.RuneCountInString(value)
 
 	switch {
-	case len(runeVal) < min:
+	case length < min:
 		if msg != "" {
 			v.Append(key, msg)
 		} else {
 			v.Append(key, fmt.Sprintf(MessageLenLonger, min))
 		}
-	case max > 0 && len(runeVal) > max:
+	case max > 0 && length > max:
 		if msg != "" {
 			v.Append(key, msg)
 		} else {
