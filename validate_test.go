@@ -286,6 +286,23 @@ func TestValidators(t *testing.T) {
 			make(map[string][]string),
 		},
 
+		// []int64
+		{
+			func(v Validator) { v.Required("k", []int64{}) },
+			map[string][]string{"k": {"must be set"}},
+		},
+		{
+			func(v Validator) {
+				var val []int64
+				v.Required("k", val)
+			},
+			map[string][]string{"k": {"must be set"}},
+		},
+		{
+			func(v Validator) { v.Required("k", []int64{1, 2}) },
+			make(map[string][]string),
+		},
+
 		// Len
 		{
 			func(v Validator) { v.Len("v", "w00t", 2, 5) },
