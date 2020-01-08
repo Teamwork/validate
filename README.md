@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/Teamwork/validate.svg?branch=master)](https://travis-ci.org/Teamwork/validate)
+[![Build Status](https://travis-ci.com/Teamwork/validate.svg?branch=master)](https://travis-ci.com/Teamwork/validate)
 [![codecov](https://codecov.io/gh/Teamwork/validate/branch/master/graph/badge.svg?token=n0k8YjbQOL)](https://codecov.io/gh/Teamwork/validate)
 [![GoDoc](https://godoc.org/github.com/Teamwork/validate?status.svg)](https://godoc.org/github.com/Teamwork/validate)
 
