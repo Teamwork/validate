@@ -202,6 +202,10 @@ func (v *Validator) Required(key string, value interface{}, message ...string) {
 		if strings.TrimSpace(val) == "" {
 			v.Append(key, msg)
 		}
+	case *string:
+		if val == nil || strings.TrimSpace(*val) == "" {
+			v.Append(key, msg)
+		}
 	case int:
 		if val == int(0) {
 			v.Append(key, msg)
