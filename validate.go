@@ -47,6 +47,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"reflect"
 	"regexp"
 	"sort"
 	"strconv"
@@ -257,6 +258,12 @@ func (v *Validator) Required(key string, value interface{}, message ...string) {
 			v.Append(key, msg)
 		}
 	default:
+		if vv := reflect.ValueOf(value); vv.Kind() == reflect.Ptr {
+			if value == reflect.Zero(vv.Type()).Interface() {
+				v.Append(key, msg)
+			}
+			return
+		}
 		panic(fmt.Sprintf("validate: not a supported type: %T", value))
 	}
 }
