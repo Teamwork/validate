@@ -47,6 +47,7 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"os"
 	"reflect"
 	"regexp"
 	"sort"
@@ -554,6 +555,114 @@ func (v *Validator) Range(key string, value, min, max int64, message ...string) 
 			v.Append(key, msg)
 		} else {
 			v.Append(key, fmt.Sprintf(MessageRangeLower, max))
+		}
+	}
+}
+
+//Image checks if the file is an image.
+//This only checks for JPEG, PNG or GIF
+func (v *Validator) Image(key string, file *os.File, message ...string) {
+	msg := getMessage(message, "")
+
+	if !isFileImage(file, "") {
+		if msg != "" {
+			v.Append(key, msg)
+		} else {
+			v.Append(key, fmt.Sprintf(MessageNotAnImage))
+		}
+	}
+}
+
+//ImageFormat checks for an image.
+//Only 9 image formats are supported namely: jpeg, png, gif, bmp, svg+xml, tiff, webp, x-icon, apng
+//multiple formats can be stated and should be separated by comma(','), eg: "jpeg, png, gif, svg+xml"
+//Check format for images, visit:
+//https://www.iana.org/assignments/media-types/media-types.xhtml#image
+func (v *Validator) ImageFormat(key string, file *os.File, format string, message ...string) {
+	msg := getMessage(message, "")
+
+	if !isFileImage(file, format) {
+		if msg != "" {
+			v.Append(key, msg)
+		} else {
+			v.Append(key, fmt.Sprintf(MessageImageFormat, format))
+		}
+	}
+}
+
+//ImageDimension checks the exact dimesion of an image.
+//format must be either JPEG, PNG or GIF
+func (v *Validator) ImageDimension(key string, file *os.File, width, height int, message ...string) {
+	msg := getMessage(message, "")
+
+	realWidth, realHeight, err := getDimension(file)
+
+	if err != nil {
+		v.Append(key, MessageNotAnImage)
+	}
+
+	if realWidth != width || realHeight != height {
+		if msg != "" {
+			v.Append(key, msg)
+		} else {
+			v.Append(key, fmt.Sprintf(MessageImageDimension, width, height))
+		}
+	}
+}
+
+//ImageMinDimension checks for minimum dimension of an image.
+//format must be either JPEG, PNG or GIF
+func (v *Validator) ImageMinDimension(key string, file *os.File, minWidth, minHeight int, message ...string) {
+	msg := getMessage(message, "")
+
+	realWidth, realHeight, err := getDimension(file)
+
+	if err != nil {
+		v.Append(key, MessageNotAnImage)
+	}
+
+	if realWidth < minWidth || realHeight < minHeight {
+		if msg != "" {
+			v.Append(key, msg)
+		} else {
+			v.Append(key, fmt.Sprintf(MessageImageMinDimension, minWidth, minHeight))
+		}
+	}
+}
+
+//ImageMaxDimension checks for maximum dimension of an image.
+//format must be either JPEG, PNG or GIF
+func (v *Validator) ImageMaxDimension(key string, file *os.File, maxWidth, maxHeight int, message ...string) {
+	msg := getMessage(message, "")
+
+	realWidth, realHeight, err := getDimension(file)
+
+	if err != nil {
+		v.Append(key, MessageNotAnImage)
+	}
+
+	if realWidth > maxWidth || realHeight > maxHeight {
+		if msg != "" {
+			v.Append(key, msg)
+		} else {
+			v.Append(key, fmt.Sprintf(MessageImageMaxDimension, maxWidth, maxHeight))
+		}
+	}
+}
+
+//FileMimeType validates file mime type
+//Multiple mimeType formats can be stated
+//For more information on mime types, visit:
+//https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
+//https://www.iana.org/assignments/media-types/media-types.xhtml
+func (v *Validator) FileMimeType(key string, file *os.File, mimeType string, message ...string) {
+	msg := getMessage(message, "")
+
+	if !isFileMimeTypeValid(file, mimeType) {
+		if msg != "" {
+			v.Append(key, msg)
+		} else {
+			v.Append(key, fmt.Sprintf(MessageImageFormat, mimeType))
 		}
 	}
 }
