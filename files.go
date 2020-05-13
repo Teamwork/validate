@@ -1,18 +1,19 @@
 package validate
 
 import (
-	"fmt"
 	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
 	"net/http"
 	"os"
 	"strings"
 )
 
+//Supported Image Formats/Mime Types
 var (
 	supportedImageFormats = map[string]string{
 		"jpeg": "image/jpeg", "png": "image/png", "gif": "image/gif",
-		"apng": "image/apng", "svg+xml": "image/svg+xml", "bmp": "image/bmp",
-		"tiff": "image/tiff", "webp": "image/webp", "x-icon": "image/x-icon",
 	}
 )
 
@@ -62,7 +63,7 @@ func getFileMimeType(file *os.File) (string, error) {
 	return contentType, nil
 }
 
-//isFileImage confirms if this file is and Image of jpeg, png, gif, bmp, svg+xml, tiff, webp, x-icon, apng
+//isFileImage confirms if this file is and Image of jpeg, png, gif
 //format should be separated by comma
 func isFileImage(file *os.File, format string) bool {
 	calculatedFormat, err := getFileMimeType(file)
@@ -101,9 +102,10 @@ func isFileImage(file *os.File, format string) bool {
 
 //getDimensions returns the dimensions of the uploaded image
 func getDimension(file *os.File) (int, int, error) {
+
 	img, _, err := image.DecodeConfig(file)
 	if err != nil {
-		return 0, 0, fmt.Errorf("Invalid image file")
+		return 0, 0, err
 	}
 
 	return img.Width, img.Height, nil

@@ -20,10 +20,12 @@ var (
 	MessageRangeLower        = "must be lower than %d"
 	MessageNotAnImage        = "must be an image"
 	MessageImageFormat       = "must be an image of '%s' format"
-	MessageImageDimension    = "image dimension (W x H) must be '%d x %d'"
-	MessageImageMinDimension = "image dimension (W x H) cannot be less than '%d x %d' respectively"
-	MessageImageMaxDimension = "image dimension (W x H) cannot be more than '%d x %d' respectively"
+	MessageImageDimension    = "image dimension (W x H) must be '%d x %d' pixels"
+	MessageImageMinDimension = "image dimension (W x H) cannot be less than '%d x %d' pixels respectively"
+	MessageImageMaxDimension = "image dimension (W x H) cannot be more than '%d x %d' pixels respectively"
 	MessageFileMimeType      = "must be a file of type '%s'"
+	MessageFileMaxSize       = "file size cannot be larger than '%d' KiloBytes"
+	MessageFileMinSize       = "file size cannot be less than '%d' KiloBytes"
 )
 
 func getMessage(in []string, def string) string {

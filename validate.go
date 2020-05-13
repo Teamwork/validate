@@ -562,6 +562,8 @@ func (v *Validator) Range(key string, value, min, max int64, message ...string) 
 //Image checks if the file is an image.
 //This only checks for JPEG, PNG or GIF
 func (v *Validator) Image(key string, file *os.File, message ...string) {
+	file.Seek(0, 0)
+
 	msg := getMessage(message, "")
 
 	if !isFileImage(file, "") {
@@ -579,9 +581,11 @@ func (v *Validator) Image(key string, file *os.File, message ...string) {
 //Check format for images, visit:
 //https://www.iana.org/assignments/media-types/media-types.xhtml#image
 func (v *Validator) ImageFormat(key string, file *os.File, format string, message ...string) {
+	file.Seek(0, 0)
+
 	msg := getMessage(message, "")
 
-	if !isFileImage(file, format) {
+	if !isFileImage(file, strings.ToLower(format)) {
 		if msg != "" {
 			v.Append(key, msg)
 		} else {
@@ -593,11 +597,14 @@ func (v *Validator) ImageFormat(key string, file *os.File, format string, messag
 //ImageDimension checks the exact dimesion of an image.
 //format must be either JPEG, PNG or GIF
 func (v *Validator) ImageDimension(key string, file *os.File, width, height int, message ...string) {
+	file.Seek(0, 0)
+
 	msg := getMessage(message, "")
 
 	realWidth, realHeight, err := getDimension(file)
 
 	if err != nil {
+		// panic(err.Error())
 		v.Append(key, MessageNotAnImage)
 	}
 
@@ -613,6 +620,7 @@ func (v *Validator) ImageDimension(key string, file *os.File, width, height int,
 //ImageMinDimension checks for minimum dimension of an image.
 //format must be either JPEG, PNG or GIF
 func (v *Validator) ImageMinDimension(key string, file *os.File, minWidth, minHeight int, message ...string) {
+	file.Seek(0, 0)
 	msg := getMessage(message, "")
 
 	realWidth, realHeight, err := getDimension(file)
@@ -633,6 +641,7 @@ func (v *Validator) ImageMinDimension(key string, file *os.File, minWidth, minHe
 //ImageMaxDimension checks for maximum dimension of an image.
 //format must be either JPEG, PNG or GIF
 func (v *Validator) ImageMaxDimension(key string, file *os.File, maxWidth, maxHeight int, message ...string) {
+	file.Seek(0, 0)
 	msg := getMessage(message, "")
 
 	realWidth, realHeight, err := getDimension(file)
@@ -646,6 +655,56 @@ func (v *Validator) ImageMaxDimension(key string, file *os.File, maxWidth, maxHe
 			v.Append(key, msg)
 		} else {
 			v.Append(key, fmt.Sprintf(MessageImageMaxDimension, maxWidth, maxHeight))
+		}
+	}
+}
+
+//FileMaxSize validates the maximum size in KiloBytes a file can be
+//This can be used with any type of files as well as images
+func (v *Validator) FileMaxSize(key string, file *os.File, maxSizeInKB float64, message ...string) {
+	file.Seek(0, 0)
+	//Get File Size
+	info, err := file.Stat()
+
+	if err != nil {
+		panic("Could not determine file size: \n" + err.Error())
+	}
+
+	msg := getMessage(message, "")
+
+	//convert to bytes
+	maxSizeInBytes := int64(maxSizeInKB * 1024)
+
+	if info.Size() > maxSizeInBytes {
+		if msg != "" {
+			v.Append(key, msg)
+		} else {
+			v.Append(key, fmt.Sprintf(MessageFileMaxSize, maxSizeInKB))
+		}
+	}
+}
+
+//FileMinSize validates the minimum size KiloBytes a file can be
+//This can be used with any type of files as well as images
+func (v *Validator) FileMinSize(key string, file *os.File, minSizeInKB float64, message ...string) {
+	file.Seek(0, 0)
+	//Get File Size
+	info, err := file.Stat()
+
+	if err != nil {
+		panic("Could not determine file size")
+	}
+
+	msg := getMessage(message, "")
+
+	//convert to bytes
+	minSizeInBytes := int64(minSizeInKB * 1024)
+
+	if info.Size() < minSizeInBytes {
+		if msg != "" {
+			v.Append(key, msg)
+		} else {
+			v.Append(key, fmt.Sprintf(MessageFileMinSize, minSizeInKB))
 		}
 	}
 }
