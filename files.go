@@ -2,9 +2,7 @@ package validate
 
 import (
 	"image"
-	_ "image/gif"
-	_ "image/jpeg"
-	_ "image/png"
+
 	"net/http"
 	"os"
 	"strings"
@@ -13,42 +11,13 @@ import (
 //Supported Image Formats/Mime Types
 var (
 	supportedImageFormats = map[string]string{
-		"jpeg": "image/jpeg", "png": "image/png", "gif": "image/gif",
+		"jpeg": "image/jpeg", "png": "image/png", "gif": "image/gif", "jpg": "image/jpeg",
 	}
 )
 
-//ImageOptions defines the options associated with the Image file
-//These include Minimum & Maxium Size, Minimum & Maxium  Dimensions and Image format
-type ImageOptions struct {
-	//For Images, use either JPEG, JPG, PNG or GIF
-	Format string
-	//Defines minimum and maximum size of file
-	fileSize
-	//Maximum Dimension(Width, Height)
-	MaxDimension [2]int32
-	//Minimum Dimension(Width, Height)
-	MinDimension [2]int32
-}
-
-//FileOptions For Files
-type FileOptions struct {
-	//File Mime Types
-	MimeType string
-	//Defines minimum and maximum size of file
-	fileSize
-}
-
-//Represent File Sze
-type fileSize struct {
-	//Maximum Size in KiloBytes. Must be an Integer
-	MaxSize int32
-	//Minimun Size in KiloBytes. Must be an Integer
-	MinSize int32
-}
-
 //getFileMimeType returns the
 func getFileMimeType(file *os.File) (string, error) {
-
+	file.Seek(0, 0)
 	buff := make([]byte, 512)
 
 	_, err := file.Read(buff)
@@ -107,7 +76,6 @@ func getDimension(file *os.File) (int, int, error) {
 	if err != nil {
 		return 0, 0, err
 	}
-
 	return img.Width, img.Height, nil
 }
 
@@ -123,7 +91,6 @@ func isFileMimeTypeValid(file *os.File, mimeType string) bool {
 	if err != nil {
 		return false
 	}
-
 	//Split mimetype to individual values
 	mimeTypeArray := strings.Split(mimeType, ",")
 

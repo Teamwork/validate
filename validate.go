@@ -258,6 +258,18 @@ func (v *Validator) Required(key string, value interface{}, message ...string) {
 		if !nonEmpty {
 			v.Append(key, msg)
 		}
+
+	case *os.File:
+		info, err := val.Stat()
+		if err != nil {
+			v.Append(key, msg)
+		}
+
+		//Size is zero or file is directory
+		if info.Size() == int64(0) || info.IsDir() {
+			v.Append(key, msg)
+		}
+
 	default:
 		if vv := reflect.ValueOf(value); vv.Kind() == reflect.Ptr {
 			if value == reflect.Zero(vv.Type()).Interface() {
@@ -604,8 +616,8 @@ func (v *Validator) ImageDimension(key string, file *os.File, width, height int,
 	realWidth, realHeight, err := getDimension(file)
 
 	if err != nil {
-		// panic(err.Error())
 		v.Append(key, MessageNotAnImage)
+		return
 	}
 
 	if realWidth != width || realHeight != height {
@@ -627,6 +639,7 @@ func (v *Validator) ImageMinDimension(key string, file *os.File, minWidth, minHe
 
 	if err != nil {
 		v.Append(key, MessageNotAnImage)
+		return
 	}
 
 	if realWidth < minWidth || realHeight < minHeight {
@@ -648,6 +661,7 @@ func (v *Validator) ImageMaxDimension(key string, file *os.File, maxWidth, maxHe
 
 	if err != nil {
 		v.Append(key, MessageNotAnImage)
+		return
 	}
 
 	if realWidth > maxWidth || realHeight > maxHeight {
@@ -721,7 +735,7 @@ func (v *Validator) FileMimeType(key string, file *os.File, mimeType string, mes
 		if msg != "" {
 			v.Append(key, msg)
 		} else {
-			v.Append(key, fmt.Sprintf(MessageImageFormat, mimeType))
+			v.Append(key, fmt.Sprintf(MessageFileMimeType, mimeType))
 		}
 	}
 }
