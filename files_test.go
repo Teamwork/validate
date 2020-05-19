@@ -368,7 +368,7 @@ func TestFileRequired(t *testing.T) {
 		panic(err)
 	}
 
-	defer closeFiles(file.Close())
+	defer closeFiles(file)
 
 	tests := []struct {
 		testname   string
@@ -459,7 +459,7 @@ func makeTestImage(format, name string, w, h int) *http.Request {
 	if err != nil {
 		panic("Error creating image: \n" + err.Error())
 	}
-	defer closeFiles(file.Close())
+	defer closeFiles(file)
 
 	switch format {
 	case "GIF":
@@ -491,7 +491,7 @@ func makeOtherFiles(name, format, content string) *http.Request {
 		if err != nil {
 			panic("Error creating file: \n" + err.Error())
 		}
-		defer closeFiles(file.Close())
+		defer closeFiles(file)
 
 		return convertToRequest(fullName, format, file)
 	}
@@ -502,7 +502,7 @@ func makeOtherFiles(name, format, content string) *http.Request {
 		panic("Error creating file: \n" + err.Error())
 	}
 
-	defer closeFiles(file.Close())
+	defer closeFiles(file)
 
 	_, err = file.Write([]byte(content))
 	if err != nil {
@@ -548,13 +548,14 @@ func convertToRequest(name, format string, file *os.File) *http.Request {
 	// Don't forget to set the content type, this will contain the boundary.
 	req.Header.Set("Content-Type", mw.FormDataContentType())
 
-	closeFiles(mw.Close())
+	closeFiles(mw)
 
 	return req
 }
 
 //Close Files
-func closeFiles(err error) {
+func closeFiles(c io.Closer) {
+	err := c.Close()
 	if err != nil {
 		panic("Error closing file:" + err.Error())
 	}
