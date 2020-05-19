@@ -594,7 +594,9 @@ func (v *Validator) Range(key string, value, min, max int64, message ...string) 
 // 			fmt.Fprintf(w, validator.String())
 // 		}
 //	}
-func (v *Validator) IsImage(key string, fileHeader *multipart.FileHeader, formats string, message ...string) bool {
+func (v *Validator) IsImage(key string,
+	fileHeader *multipart.FileHeader,
+	formats string, message ...string) bool {
 	uploadedTypes := fileHeader.Header["Content-Type"]
 	msg := getMessage(message, "")
 
@@ -610,7 +612,7 @@ func (v *Validator) IsImage(key string, fileHeader *multipart.FileHeader, format
 	} else if formats != "" {
 		v.Append(key, fmt.Sprintf(MessageImageFormat, formats))
 	} else {
-		v.Append(key, fmt.Sprintf(MessageNotAnImage))
+		v.Append(key, MessageNotAnImage)
 	}
 	return false
 }
@@ -679,7 +681,11 @@ func (v *Validator) ImageDimensions(
 	if msg != "" {
 		v.Append(key, msg)
 	} else if minDimErrorMsg != "" && maxDimErrorMsg != "" {
-		v.Append(key, fmt.Sprintf(MessageImageDimension, minDimension.Width, minDimension.Height, maxDimension.Width, maxDimension.Height))
+		v.Append(key, fmt.Sprintf(MessageImageDimension,
+			minDimension.Width,
+			minDimension.Height,
+			maxDimension.Width,
+			maxDimension.Height))
 	} else if maxDimErrorMsg != "" {
 		v.Append(key, maxDimErrorMsg)
 	} else if minDimErrorMsg != "" {
@@ -690,7 +696,8 @@ func (v *Validator) ImageDimensions(
 
 //FileSize validates the minimum size ytes a file can be
 //This can be used with any type of files as well as images
-//It accepts pointer to multipart.FileHeader as the first parameter as well as minimum and maximum sizes of files in integer
+//It accepts pointer to multipart.FileHeader as the first parameter.
+//Minimum and maximum sizes of files in integer
 //Use '-1' for any size
 //  For Example:
 //	func uploadFile(w http.ResponseWriter, r *http.Request) {
@@ -714,7 +721,7 @@ func (v *Validator) FileSize(key string,
 	message ...string) {
 
 	if minSizeInBytes == 0 && maxSizeInBytes == 0 {
-		panic("File size cannot be zeros. You must either specify minimum size or maximum size in bytes")
+		panic("File size cannot be zeros. Minimum or maximum size in bytes must be specified")
 	}
 	//Return if all negative
 	if minSizeInBytes < 0 && maxSizeInBytes < 0 {
@@ -740,7 +747,8 @@ func (v *Validator) FileSize(key string,
 		v.Append(key, msg)
 	} else if minSizeErrMsg != "" && maxSizeErrMsg != "" {
 		v.Append(key,
-			fmt.Sprintf(MessageFileSize, bytesToKiloBytes(minSizeInBytes), bytesToKiloBytes(maxSizeInBytes)))
+			fmt.Sprintf(MessageFileSize, bytesToKiloBytes(minSizeInBytes),
+				bytesToKiloBytes(maxSizeInBytes)))
 	} else if minSizeErrMsg != "" {
 		v.Append(key, minSizeErrMsg)
 	} else if maxSizeErrMsg != "" {

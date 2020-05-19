@@ -362,12 +362,9 @@ func TestFileRequired(t *testing.T) {
 	textFile := prepareFileHeader(makeOtherFiles("text_1.txt", "text/plain", "New text"))
 
 	file, err := textFile.Open()
-	defer file.Close()
-
 	if err != nil {
 		panic(err)
 	}
-
 	defer closeFiles(file)
 
 	tests := []struct {
@@ -464,13 +461,21 @@ func makeTestImage(format, name string, w, h int) *http.Request {
 	switch format {
 	case "GIF":
 		o := &gif.Options{NumColors: 10}
-		gif.Encode(file, newImage, o)
-		break
+		err := gif.Encode(file, newImage, o)
+		if err != nil {
+			panic(err)
+		}
 	case "JPEG":
 		o := jpeg.Options{Quality: 80}
-		jpeg.Encode(file, newImage, &o)
+		err := jpeg.Encode(file, newImage, &o)
+		if err != nil {
+			panic(err)
+		}
 	default:
-		png.Encode(file, newImage)
+		err := png.Encode(file, newImage)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	return convertToRequest(fullName, format, file)
@@ -485,8 +490,10 @@ func makeOtherFiles(name, format, content string) *http.Request {
 		pdf := gofpdf.New("P", "mm", "A4", "")
 		pdf.AddPage()
 		pdf.Text(20, 20, content)
-		pdf.OutputFileAndClose(fullName)
-
+		err := pdf.OutputFileAndClose(fullName)
+		if err != nil {
+			panic(err)
+		}
 		file, err := os.Open(fullName)
 		if err != nil {
 			panic("Error creating file: \n" + err.Error())

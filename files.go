@@ -70,7 +70,10 @@ func getDimension(fileHeader *multipart.FileHeader) (*ImageDimension, error) {
 		return nil, fmt.Errorf("Error getting image dimension." + err.Error())
 	}
 	//Reset File
-	file.Seek(0, 0)
+	_, err = file.Seek(0, 0)
+	if err != nil {
+		panic(err)
+	}
 	// buf := bufio.NewReader(file)
 
 	img, _, err := image.DecodeConfig(file)
