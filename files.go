@@ -1,7 +1,13 @@
 package validate
 
 import (
+	"fmt"
 	"image"
+	_ "image/gif"
+	_ "image/jpeg"
+	_ "image/png"
+	"math"
+	"mime/multipart"
 
 	"net/http"
 	"os"
@@ -14,6 +20,13 @@ var (
 		"jpeg": "image/jpeg", "png": "image/png", "gif": "image/gif", "jpg": "image/jpeg",
 	}
 )
+
+//ImageDimension represents width and height of an image dimension in pixels
+//This is required by image dimension validation
+type ImageDimension struct {
+	Width  int
+	Height int
+}
 
 //getFileMimeType returns the
 func getFileMimeType(file *os.File) (string, error) {
@@ -34,17 +47,14 @@ func getFileMimeType(file *os.File) (string, error) {
 
 //isFileImage confirms if this file is and Image of jpeg, png, gif
 //format should be separated by comma
-func isFileImage(file *os.File, format string) bool {
-	calculatedFormat, err := getFileMimeType(file)
+func isFileImage(uploadedType, format string) bool {
 
-	if err != nil {
-		return false
-	}
 	//Required format supplied
 	if format != "" {
 		//Check format is defined in supported format map
 		requiredFormat, ok := supportedImageFormats[format]
-		if ok && (requiredFormat == calculatedFormat) {
+
+		if ok && (strings.TrimSpace(requiredFormat) == uploadedType) {
 			return true
 		}
 		//Try splitting the required format in case of multiple formats
@@ -52,7 +62,7 @@ func isFileImage(file *os.File, format string) bool {
 		//Iterate through splitted formats
 		for _, val := range formatsArray {
 			requiredFormat, ok := supportedImageFormats[val]
-			if ok && (requiredFormat == calculatedFormat) {
+			if ok && (strings.TrimSpace(requiredFormat) == uploadedType) {
 				return true
 			}
 		}
@@ -61,7 +71,8 @@ func isFileImage(file *os.File, format string) bool {
 	}
 	//Check if the file is an image
 	for _, requiredFormat := range supportedImageFormats {
-		if requiredFormat == calculatedFormat {
+
+		if requiredFormat == uploadedType {
 			return true
 		}
 	}
@@ -70,41 +81,46 @@ func isFileImage(file *os.File, format string) bool {
 }
 
 //getDimensions returns the dimensions of the uploaded image
-func getDimension(file *os.File) (int, int, error) {
+func getDimension(fileHeader *multipart.FileHeader) (*ImageDimension, error) {
+	file, err := fileHeader.Open()
+	if err != nil {
+		return nil, fmt.Errorf("Error getting image dimension." + err.Error())
+	}
+	//Reset File
+	file.Seek(0, 0)
+	// buf := bufio.NewReader(file)
 
 	img, _, err := image.DecodeConfig(file)
+
 	if err != nil {
-		return 0, 0, err
+		fmt.Println(err.Error(), file)
+		return nil, fmt.Errorf("Error getting image dimension." + err.Error())
 	}
-	return img.Width, img.Height, nil
+
+	return &ImageDimension{img.Width, img.Height}, nil
 }
 
 //isFileMimeTypeValid confirms if the supplied mime type matches that of the image
-func isFileMimeTypeValid(file *os.File, mimeType string) bool {
-	//return for empty mimeType
-	if mimeType == "" {
-		return false
-	}
-	//find mimeType for the file
-	calculatedMimeType, err := getFileMimeType(file)
-	//return on error
-	if err != nil {
-		return false
-	}
-	//Split mimetype to individual values
-	mimeTypeArray := strings.Split(mimeType, ",")
+func isFileMimeTypeValid(uploadedMimeType, requiresMimeType string) bool {
 
+	//Split mimetype to individual values
+	mimeTypeArray := strings.Split(requiresMimeType, ",")
 	//Check for single value mimetype
-	if len(mimeTypeArray) == 0 && mimeType == calculatedMimeType {
+	if len(mimeTypeArray) == 0 && uploadedMimeType == strings.TrimSpace(requiresMimeType) {
 		return true
 	}
 
 	//Iterate through splitted types to determine if mimeType matches
-	for _, requiredMimeTypet := range mimeTypeArray {
-		if requiredMimeTypet == calculatedMimeType {
+	for _, mimeType := range mimeTypeArray {
+		if strings.TrimSpace(mimeType) == uploadedMimeType {
 			return true
 		}
 	}
 	//return false on no match
 	return false
+}
+
+//Convert bytes to kilobytes
+func bytesToKiloBytes(byteData int64) float64 {
+	return math.Ceil(float64(byteData) / 1024)
 }

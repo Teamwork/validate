@@ -45,9 +45,9 @@ package validate // import "github.com/teamwork/validate"
 import (
 	"encoding/json"
 	"fmt"
+	"mime/multipart"
 	"net"
 	"net/url"
-	"os"
 	"reflect"
 	"regexp"
 	"sort"
@@ -258,18 +258,19 @@ func (v *Validator) Required(key string, value interface{}, message ...string) {
 		if !nonEmpty {
 			v.Append(key, msg)
 		}
-
-	case *os.File:
-		info, err := val.Stat()
-		if err != nil {
+	//Added Required for File
+	case *multipart.FileHeader:
+		_, err := val.Open()
+		if val == nil || val.Size <= 0 || err != nil {
 			v.Append(key, msg)
 		}
 
-		//Size is zero or file is directory
-		if info.Size() == int64(0) || info.IsDir() {
+	case multipart.File:
+		b := make([]byte, 10)
+		num, _ := val.Read(b)
+		if num == 0 {
 			v.Append(key, msg)
 		}
-
 	default:
 		if vv := reflect.ValueOf(value); vv.Kind() == reflect.Ptr {
 			if value == reflect.Zero(vv.Type()).Interface() {
@@ -571,171 +572,217 @@ func (v *Validator) Range(key string, value, min, max int64, message ...string) 
 	}
 }
 
-//Image checks if the file is an image.
-//This only checks for JPEG, PNG or GIF
-func (v *Validator) Image(key string, file *os.File, message ...string) {
-	file.Seek(0, 0)
-
+//IsImage checks if the file is an image.
+//This only checks for JPEG, PNG or GIF  MIME Header:
+//It accepts pointer to multipart.FileHeader and formats(string)
+//Multiple formats can be stated and should be separated by comma(','), eg: "jpeg, png, gif"
+//  For Example:
+//	func uploadFile(w http.ResponseWriter, r *http.Request) {
+//		r.ParseMultipartForm(10 << 20)
+// 		file, fileHeader, err := r.FormFile("myFile")
+// 		if err != nil {
+// 			fmt.Println("Error Retrieving the File")
+// 			fmt.Println(err)
+// 			return
+// 		}
+// 		defer file.Close()
+// 		validator := validate.New()
+// 		validator.IsImage("myFile", fileHeader, "") OR
+// 		validator.IsImage("myFile", fileHeader, "jpeg") OR
+// 		validator.IsImage("myFile", fileHeader, "jpeg, png")
+// 		if validator.HasErrors() {
+// 			fmt.Fprintf(w, validator.String())
+// 		}
+//	}
+func (v *Validator) IsImage(key string, fileHeader *multipart.FileHeader, formats string, message ...string) bool {
+	uploadedTypes := fileHeader.Header["Content-Type"]
 	msg := getMessage(message, "")
 
-	if !isFileImage(file, "") {
-		if msg != "" {
-			v.Append(key, msg)
-		} else {
-			v.Append(key, fmt.Sprintf(MessageNotAnImage))
+	for _, uploadedType := range uploadedTypes {
+		if isFileImage(uploadedType, strings.ToLower(formats)) {
+			return true
 		}
 	}
-}
 
-//ImageFormat checks for an image.
-//Only 9 image formats are supported namely: jpeg, png, gif, bmp, svg+xml, tiff, webp, x-icon, apng
-//multiple formats can be stated and should be separated by comma(','), eg: "jpeg, png, gif, svg+xml"
-//Check format for images, visit:
-//https://www.iana.org/assignments/media-types/media-types.xhtml#image
-func (v *Validator) ImageFormat(key string, file *os.File, format string, message ...string) {
-	file.Seek(0, 0)
-
-	msg := getMessage(message, "")
-
-	if !isFileImage(file, strings.ToLower(format)) {
-		if msg != "" {
-			v.Append(key, msg)
-		} else {
-			v.Append(key, fmt.Sprintf(MessageImageFormat, format))
-		}
+	//Append a different error if Image format is present
+	if msg != "" {
+		v.Append(key, msg)
+	} else if formats != "" {
+		v.Append(key, fmt.Sprintf(MessageImageFormat, formats))
+	} else {
+		v.Append(key, fmt.Sprintf(MessageNotAnImage))
 	}
+	return false
 }
 
-//ImageDimension checks the exact dimesion of an image.
-//format must be either JPEG, PNG or GIF
-func (v *Validator) ImageDimension(key string, file *os.File, width, height int, message ...string) {
-	file.Seek(0, 0)
+//ImageDimensions  validates the maximum and minimum dimensions of an image in Pixels
+//minDimension speficies the lower limit of the image dimension while maxDimension specifies the upper limit
+//You can use nil to replace any of minDimension or maxDimension to indicate no limit
+//It accepts pointer to multipart.FileHeader as the first parameter
+//Both minDimension & maxDimension are of pointer to ImageDimension
+//  For Example:
+//	func uploadFile(w http.ResponseWriter, r *http.Request) {
+//		r.ParseMultipartForm(10 << 20)
+// 		file, fileHeader, err := r.FormFile("myFile")
+// 		if err != nil {
+// 			fmt.Println("Error Retrieving the File")
+// 			fmt.Println(err)
+// 			return
+// 		}
+// 		defer file.Close()
+// 		validator := validate.New()
+// 		minDim := validate.ImageDimension{Width: 200, Height: 300}
+// 		maxDim := validate.ImageDimension{Width: 300, Height: 350}
+// 		validator.ImageDimensions("myFile", fileHeader, &minDim, &maxDim, "")
+// 		if validator.HasErrors() {
+// 			fmt.Fprintf(w, validator.String())
+// 		}
+//	}
+func (v *Validator) ImageDimensions(key string, fileHeader *multipart.FileHeader, minDimension, maxDimension *ImageDimension, message ...string) {
+
+	if maxDimension == nil && minDimension == nil {
+		panic("You must specify either minimum dimension or maximum dimension!")
+	}
 
 	msg := getMessage(message, "")
 
-	realWidth, realHeight, err := getDimension(file)
-
-	if err != nil {
-		v.Append(key, MessageNotAnImage)
+	//Confirm Uploaded file is Image
+	if !v.IsImage(key, fileHeader, "", "File is not an image. Only dimensions of image files can be determined.") {
 		return
 	}
 
-	if realWidth != width || realHeight != height {
-		if msg != "" {
-			v.Append(key, msg)
-		} else {
-			v.Append(key, fmt.Sprintf(MessageImageDimension, width, height))
-		}
-	}
-}
-
-//ImageMinDimension checks for minimum dimension of an image.
-//format must be either JPEG, PNG or GIF
-func (v *Validator) ImageMinDimension(key string, file *os.File, minWidth, minHeight int, message ...string) {
-	file.Seek(0, 0)
-	msg := getMessage(message, "")
-
-	realWidth, realHeight, err := getDimension(file)
+	//Get real dimension
+	realDim, err := getDimension(fileHeader)
 
 	if err != nil {
-		v.Append(key, MessageNotAnImage)
+		v.Append(key, fmt.Sprintf("Error getting uploaded image dimension. Please try again."))
 		return
 	}
+	//Init Error Message
+	var minDimErrorMsg, maxDimErrorMsg string = "", ""
 
-	if realWidth < minWidth || realHeight < minHeight {
-		if msg != "" {
-			v.Append(key, msg)
-		} else {
-			v.Append(key, fmt.Sprintf(MessageImageMinDimension, minWidth, minHeight))
-		}
+	//Check for minimum dimension requirement
+	if minDimension != nil && (realDim.Width < minDimension.Width || realDim.Height < minDimension.Height) {
+		minDimErrorMsg = fmt.Sprintf(MessageImageMinDimension, minDimension.Width, minDimension.Height)
 	}
+
+	//Check for maximum dimension requirements
+	if maxDimension != nil && (realDim.Width > maxDimension.Width || realDim.Height > maxDimension.Height) {
+		maxDimErrorMsg = fmt.Sprintf(MessageImageMaxDimension, maxDimension.Width, maxDimension.Height)
+	}
+
+	//Append appropriate errors
+	if msg != "" {
+		v.Append(key, msg)
+	} else if minDimErrorMsg != "" && maxDimErrorMsg != "" {
+		v.Append(key, fmt.Sprintf(MessageImageDimension, minDimension.Width, minDimension.Height, maxDimension.Width, maxDimension.Height))
+	} else if maxDimErrorMsg != "" {
+		v.Append(key, maxDimErrorMsg)
+	} else if minDimErrorMsg != "" {
+		v.Append(key, minDimErrorMsg)
+	}
+
 }
 
-//ImageMaxDimension checks for maximum dimension of an image.
-//format must be either JPEG, PNG or GIF
-func (v *Validator) ImageMaxDimension(key string, file *os.File, maxWidth, maxHeight int, message ...string) {
-	file.Seek(0, 0)
-	msg := getMessage(message, "")
-
-	realWidth, realHeight, err := getDimension(file)
-
-	if err != nil {
-		v.Append(key, MessageNotAnImage)
-		return
-	}
-
-	if realWidth > maxWidth || realHeight > maxHeight {
-		if msg != "" {
-			v.Append(key, msg)
-		} else {
-			v.Append(key, fmt.Sprintf(MessageImageMaxDimension, maxWidth, maxHeight))
-		}
-	}
-}
-
-//FileMaxSize validates the maximum size in KiloBytes a file can be
+//FileSize validates the minimum size ytes a file can be
 //This can be used with any type of files as well as images
-func (v *Validator) FileMaxSize(key string, file *os.File, maxSizeInKB float64, message ...string) {
-	file.Seek(0, 0)
-	//Get File Size
-	info, err := file.Stat()
-
-	if err != nil {
-		panic("Could not determine file size: \n" + err.Error())
+//It accepts pointer to multipart.FileHeader as the first parameter as well as minimum and maximum sizes of files in integer
+//Use '-1' for any size
+//  For Example:
+//	func uploadFile(w http.ResponseWriter, r *http.Request) {
+//		r.ParseMultipartForm(10 << 20)
+// 		file, fileHeader, err := r.FormFile("myFile")
+// 		if err != nil {
+// 			fmt.Println("Error Retrieving the File")
+// 			fmt.Println(err)
+// 			return
+// 		}
+// 		defer file.Close()
+// 		validator := validate.New()
+// 		validator.FileSize("myFile", fileHeader, 100000, 200000, "")
+// 		if validator.HasErrors() {
+// 			fmt.Fprintf(w, validator.String())
+// 		}
+//	}
+func (v *Validator) FileSize(key string, fileHeader *multipart.FileHeader, minSizeInBytes, maxSizeInBytes int64, message ...string) {
+	if minSizeInBytes == 0 && maxSizeInBytes == 0 {
+		panic("File size cannot be zeros. You must either specify minimum size or maximum size in bytes")
+	}
+	//Return if all negative
+	if minSizeInBytes < 0 && maxSizeInBytes < 0 {
+		return
 	}
 
 	msg := getMessage(message, "")
+	//initialise error messages
+	var minSizeErrMsg, maxSizeErrMsg = "", ""
 
-	//convert to bytes
-	maxSizeInBytes := int64(maxSizeInKB * 1024)
-
-	if info.Size() > maxSizeInBytes {
-		if msg != "" {
-			v.Append(key, msg)
-		} else {
-			v.Append(key, fmt.Sprintf(MessageFileMaxSize, maxSizeInKB))
-		}
-	}
-}
-
-//FileMinSize validates the minimum size KiloBytes a file can be
-//This can be used with any type of files as well as images
-func (v *Validator) FileMinSize(key string, file *os.File, minSizeInKB float64, message ...string) {
-	file.Seek(0, 0)
-	//Get File Size
-	info, err := file.Stat()
-
-	if err != nil {
-		panic("Could not determine file size")
+	//For mimum size requirement
+	if minSizeInBytes >= 0 && fileHeader.Size < minSizeInBytes {
+		minSizeErrMsg = fmt.Sprintf(MessageFileMinSize, bytesToKiloBytes(minSizeInBytes))
 	}
 
-	msg := getMessage(message, "")
-
-	//convert to bytes
-	minSizeInBytes := int64(minSizeInKB * 1024)
-
-	if info.Size() < minSizeInBytes {
-		if msg != "" {
-			v.Append(key, msg)
-		} else {
-			v.Append(key, fmt.Sprintf(MessageFileMinSize, minSizeInKB))
-		}
+	//For maximum size requirement
+	if maxSizeInBytes >= 0 && fileHeader.Size > maxSizeInBytes {
+		maxSizeErrMsg = fmt.Sprintf(MessageFileMaxSize, bytesToKiloBytes(maxSizeInBytes))
 	}
+
+	//Append appropriate errors
+	if msg != "" {
+		v.Append(key, msg)
+	} else if minSizeErrMsg != "" && maxSizeErrMsg != "" {
+		v.Append(key, fmt.Sprintf(MessageFileSize, bytesToKiloBytes(minSizeInBytes), bytesToKiloBytes(maxSizeInBytes)))
+	} else if minSizeErrMsg != "" {
+		v.Append(key, minSizeErrMsg)
+	} else if maxSizeErrMsg != "" {
+		v.Append(key, maxSizeErrMsg)
+	}
+
 }
 
 //FileMimeType validates file mime type
-//Multiple mimeType formats can be stated
+//It accepts pointer to multipart.FileHeader as the first parameter,  mime type(s)
+//Multiple mimeType formats can be separated by comma Eg: "image/jpeg, text/csv, applications/pdf"
 //For more information on mime types, visit:
 //https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
 //https://www.iana.org/assignments/media-types/media-types.xhtml
-func (v *Validator) FileMimeType(key string, file *os.File, mimeType string, message ...string) {
+//  For Example:
+//	func uploadFile(w http.ResponseWriter, r *http.Request) {
+//		r.ParseMultipartForm(10 << 20)
+// 		file, fileHeader, err := r.FormFile("myFile")
+// 		if err != nil {
+// 			fmt.Println("Error Retrieving the File")
+// 			fmt.Println(err)
+// 			return
+// 		}
+// 		defer file.Close()
+// 		validator := validate.New()
+// 		validator.FileMimeType("myFile", fileHeader, "application/pdf", "")
+// 		if validator.HasErrors() {
+// 			fmt.Fprintf(w, validator.String())
+// 		}
+// }
+func (v *Validator) FileMimeType(key string, fileHeader *multipart.FileHeader, requiredMimeTypes string, message ...string) {
+	if requiredMimeTypes == "" {
+		panic("Required mime type cannot be empty.")
+	}
+	//Get uploaded content type
+	uploadedTypes := fileHeader.Header["Content-Type"]
 	msg := getMessage(message, "")
 
-	if !isFileMimeTypeValid(file, mimeType) {
-		if msg != "" {
-			v.Append(key, msg)
-		} else {
-			v.Append(key, fmt.Sprintf(MessageFileMimeType, mimeType))
+	//Compare each with supllied Mime Type
+	for _, uploadedType := range uploadedTypes {
+		fmt.Println(uploadedTypes)
+		//Return once there is  a match
+		if isFileMimeTypeValid(uploadedType, requiredMimeTypes) {
+			return
 		}
+	}
+
+	//Append a different error if Image format is present
+	if msg != "" {
+		v.Append(key, msg)
+	} else {
+		v.Append(key, fmt.Sprintf(MessageFileMimeType, requiredMimeTypes))
 	}
 }
