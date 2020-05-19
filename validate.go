@@ -610,7 +610,7 @@ func (v *Validator) IsImage(key string, fileHeader *multipart.FileHeader, format
 	} else if formats != "" {
 		v.Append(key, fmt.Sprintf(MessageImageFormat, formats))
 	} else {
-		v.Append(key, fmt.Sprintf(MessageNotAnImage))
+		v.Append(key, MessageNotAnImage)
 	}
 	return false
 }
@@ -675,7 +675,11 @@ func (v *Validator) ImageDimensions(key string, fileHeader *multipart.FileHeader
 	if msg != "" {
 		v.Append(key, msg)
 	} else if minDimErrorMsg != "" && maxDimErrorMsg != "" {
-		v.Append(key, fmt.Sprintf(MessageImageDimension, minDimension.Width, minDimension.Height, maxDimension.Width, maxDimension.Height))
+		v.Append(key, fmt.Sprintf(MessageImageDimension,
+			minDimension.Width,
+			minDimension.Height,
+			maxDimension.Width,
+			maxDimension.Height))
 	} else if maxDimErrorMsg != "" {
 		v.Append(key, maxDimErrorMsg)
 	} else if minDimErrorMsg != "" {

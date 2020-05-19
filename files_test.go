@@ -23,9 +23,7 @@ var (
 	png2000x2000  = "test_png_2000_2000.png"
 	jpeg2000x2000 = "test_jpeg_2000_2000.jpg"
 	gif2000x2000  = "test_gif_2000_2000.gif"
-	png1000x2000  = "test_png_1000_1000.png"
 	jpeg1000x2000 = "test_jpeg_1000_1000.jpg"
-	gif1000x2000  = "test_gif_1000_1000.gif"
 )
 
 //Test and Confirm Images Formats
@@ -272,7 +270,7 @@ func TestFileMimeTypeValidation(t *testing.T) {
 	//Create test Text File
 	textFile := prepareFileHeader(makeOtherFiles("text_1.txt", "text/plain", "New text"))
 
-	pdfFile := prepareFileHeader(makeOtherFiles("test_pdf.pdf", "application/pdf", "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."))
+	pdfFile := prepareFileHeader(makeOtherFiles("test_pdf.pdf", "application/pdf", "Lorem ipsum dolor sit amet, consectetur adipiscing elit."))
 
 	tests := []struct {
 		testname   string
@@ -362,11 +360,10 @@ func TestFileRequired(t *testing.T) {
 	textFile := prepareFileHeader(makeOtherFiles("text_1.txt", "text/plain", "New text"))
 
 	file, err := textFile.Open()
-	defer file.Close()
-
 	if err != nil {
 		panic(err)
 	}
+	defer file.Close()
 
 	tests := []struct {
 		testname   string
@@ -454,21 +451,29 @@ func makeTestImage(format, name string, w, h int) *http.Request {
 	fullName := testImageDir + name
 
 	file, err := os.Create(fullName)
-	defer file.Close()
 	if err != nil {
 		panic("Error creating image: \n" + err.Error())
 	}
+	defer file.Close()
 
 	switch format {
 	case "GIF":
 		o := &gif.Options{NumColors: 10}
-		gif.Encode(file, newImage, o)
-		break
+		err := gif.Encode(file, newImage, o)
+		if err != nil {
+			panic("Error encoding gif image: \n" + err.Error())
+		}
 	case "JPEG":
 		o := jpeg.Options{Quality: 80}
-		jpeg.Encode(file, newImage, &o)
+		err := jpeg.Encode(file, newImage, &o)
+		if err != nil {
+			panic("Error encoding jpeg image: \n" + err.Error())
+		}
 	default:
-		png.Encode(file, newImage)
+		err := png.Encode(file, newImage)
+		if err != nil {
+			panic("Error encoding png image: \n" + err.Error())
+		}
 	}
 
 	return convertToRequest(fullName, format, file)
@@ -483,25 +488,26 @@ func makeOtherFiles(name, format, content string) *http.Request {
 		pdf := gofpdf.New("P", "mm", "A4", "")
 		pdf.AddPage()
 		pdf.Text(20, 20, content)
-		pdf.OutputFileAndClose(fullName)
+		err := pdf.OutputFileAndClose(fullName)
+		if err != nil {
+			panic("Error saving test pdf files: \n" + err.Error())
+		}
 
 		file, err := os.Open(fullName)
-
-		defer file.Close()
 		if err != nil {
 			panic("Error creating file: \n" + err.Error())
 		}
+		defer file.Close()
 
 		return convertToRequest(fullName, format, file)
 	}
 
 	//Create test file on  file on Disk
 	file, err := os.Create(fullName)
-	defer file.Close()
-
 	if err != nil {
 		panic("Error creating file: \n" + err.Error())
 	}
+	defer file.Close()
 
 	_, err = file.Write([]byte(content))
 	if err != nil {
@@ -509,15 +515,6 @@ func makeOtherFiles(name, format, content string) *http.Request {
 	}
 
 	return convertToRequest(fullName, format, file)
-}
-
-//calculateFileSize
-func calculateFileSize(file *os.File) int64 {
-	info, err := file.Stat()
-	if err != nil {
-		panic("Could not determine file size: \n" + err.Error())
-	}
-	return info.Size()
 }
 
 func convertToRequest(name, format string, file *os.File) *http.Request {
@@ -532,12 +529,15 @@ func convertToRequest(name, format string, file *os.File) *http.Request {
 	hd.Set("Content-Type", format)
 
 	formFile, err := mw.CreatePart(hd)
-
 	if err != nil {
 		panic("Error creating form file: " + err.Error())
 	}
 
-	file.Seek(0, 0)
+	_, err = file.Seek(0, 0)
+	if err != nil {
+		panic("Error creating form file: " + err.Error())
+	}
+
 	//Copy Files to form file
 	if _, err = io.Copy(formFile, file); err != nil {
 		panic("Error copying form file: " + err.Error())
@@ -550,7 +550,10 @@ func convertToRequest(name, format string, file *os.File) *http.Request {
 	// Don't forget to set the content type, this will contain the boundary.
 	req.Header.Set("Content-Type", mw.FormDataContentType())
 
-	mw.Close()
+	err = mw.Close()
+	if err != nil {
+		panic(err)
+	}
 
 	return req
 }

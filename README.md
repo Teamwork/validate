@@ -63,7 +63,7 @@ For Image Dimensions (Width and Heights)
 You can also validate different file mime types.
 For more information on mime types, visit:
 
-https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types  
 https://www.iana.org/assignments/media-types/media-types.xhtml
 
 File Mime type Validation:

@@ -3,14 +3,14 @@ package validate
 import (
 	"fmt"
 	"image"
+
+	//For image encoding
 	_ "image/gif"
 	_ "image/jpeg"
 	_ "image/png"
 	"math"
 	"mime/multipart"
 
-	"net/http"
-	"os"
 	"strings"
 )
 
@@ -26,23 +26,6 @@ var (
 type ImageDimension struct {
 	Width  int
 	Height int
-}
-
-//getFileMimeType returns the
-func getFileMimeType(file *os.File) (string, error) {
-	file.Seek(0, 0)
-	buff := make([]byte, 512)
-
-	_, err := file.Read(buff)
-	if err != nil {
-		return "", err
-	}
-
-	// Use the net/http package's handy DectectContentType function. Always returns a valid
-	// content-type by returning "application/octet-stream" if no others seemed to match.
-	contentType := http.DetectContentType(buff)
-
-	return contentType, nil
 }
 
 //isFileImage confirms if this file is and Image of jpeg, png, gif
@@ -87,13 +70,14 @@ func getDimension(fileHeader *multipart.FileHeader) (*ImageDimension, error) {
 		return nil, fmt.Errorf("Error getting image dimension." + err.Error())
 	}
 	//Reset File
-	file.Seek(0, 0)
-	// buf := bufio.NewReader(file)
+	_, err = file.Seek(0, 0)
+	if err != nil {
+		return nil, fmt.Errorf("Error getting image dimension." + err.Error())
+	}
 
 	img, _, err := image.DecodeConfig(file)
 
 	if err != nil {
-		fmt.Println(err.Error(), file)
 		return nil, fmt.Errorf("Error getting image dimension." + err.Error())
 	}
 
