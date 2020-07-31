@@ -682,7 +682,7 @@ func TestValidators(t *testing.T) {
 		},
 		{
 			func(v Validator) { v.Range("v", 4, 1, 2) },
-			map[string][]string{"v": {"must be lower than 2"}},
+			map[string][]string{"v": {"must be 2 or lower"}},
 		},
 		{
 			func(v Validator) { v.Range("v", 4, 1, 2, "foo") },
@@ -690,7 +690,7 @@ func TestValidators(t *testing.T) {
 		},
 		{
 			func(v Validator) { v.Range("v", 4, 16, 32) },
-			map[string][]string{"v": {"must be higher than 16"}},
+			map[string][]string{"v": {"must be 16 or higher"}},
 		},
 	}
 

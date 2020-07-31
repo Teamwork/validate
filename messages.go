@@ -16,8 +16,8 @@ var (
 	MessageBool        = "must be a boolean"
 	MessageDate        = "must be a date as ‘%s’"
 	MessagePhone       = "must be a valid phone number"
-	MessageRangeHigher = "must be higher than %d"
-	MessageRangeLower  = "must be lower than %d"
+	MessageRangeHigher = "must be %d or higher"
+	MessageRangeLower  = "must be %d or lower"
 )
 
 func getMessage(in []string, def string) string {
