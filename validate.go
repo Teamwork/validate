@@ -239,31 +239,31 @@ func (v *Validator) Required(key string, value interface{}, message ...string) {
 		if len(val) == 0 {
 			v.Append(key, msg)
 		}
-	case []string:
-		if len(val) == 0 {
-			v.Append(key, msg)
-			return
-		}
-
-		// Make sure there is at least one non-empty entry.
-		nonEmpty := false
-		for i := range val {
-			if val[i] != "" { // Consider " " to be non-empty on purpose.
-				nonEmpty = true
-				break
-			}
-		}
-
-		if !nonEmpty {
-			v.Append(key, msg)
-		}
 	default:
-		if vv := reflect.ValueOf(value); vv.Kind() == reflect.Ptr {
+		vv := reflect.ValueOf(value)
+		if vv.Kind() == reflect.Ptr {
 			if value == reflect.Zero(vv.Type()).Interface() {
 				v.Append(key, msg)
 			}
 			return
 		}
+
+		if vv.Kind() == reflect.Slice {
+			if vv.Len() == 0 {
+				v.Append(key, msg)
+				return
+			}
+
+			for i := 0; i < vv.Len(); i++ {
+				if !vv.Index(i).IsZero() && !(vv.Kind() == reflect.Ptr && vv.Index(i).IsNil()) {
+					return
+				}
+			}
+
+			v.Append(key, msg)
+			return
+		}
+
 		panic(fmt.Sprintf("validate: not a supported type: %T", value))
 	}
 }

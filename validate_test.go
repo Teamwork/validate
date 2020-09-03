@@ -64,6 +64,32 @@ func TestRequiredString(t *testing.T) {
 	}
 }
 
+func TestRequiredSlice(t *testing.T) {
+	tests := []struct {
+		a    interface{}
+		want bool
+	}{
+		{[]struct{}{}, true},
+		{[]struct{}{{}}, true},
+		{[]*struct{}{nil}, true},
+		{[]*struct{}{nil, {}}, false},
+		{[]string{}, true},
+		{[]string{""}, true},
+		{[]string{"text"}, false},
+	}
+
+	for i, tt := range tests {
+		name := fmt.Sprintf("%v", i)
+		t.Run(name, func(t *testing.T) {
+			v := New()
+			v.Required(name, tt.a)
+			if got := v.HasErrors(); got != tt.want {
+				t.Errorf("\ngot:  %#v\nwant: %#v\n", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestRequiredPtr(t *testing.T) {
 	type customStruct struct {
 		String string
