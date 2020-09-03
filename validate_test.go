@@ -13,8 +13,8 @@ import (
 
 func TestRequiredInt(t *testing.T) {
 	tests := []struct {
-		a    interface{}
-		want bool
+		a         interface{}
+		hasErrors bool
 	}{
 		{0, true},
 		{int64(0), true},
@@ -31,8 +31,8 @@ func TestRequiredInt(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			v := New()
 			v.Required(name, tt.a)
-			if got := v.HasErrors(); got != tt.want {
-				t.Errorf("\ngot:  %#v\nwant: %#v\n", got, tt.want)
+			if got := v.HasErrors(); got != tt.hasErrors {
+				t.Errorf("\ngot:  %#v\nwant: %#v\n", got, tt.hasErrors)
 			}
 		})
 	}
@@ -43,8 +43,8 @@ func TestRequiredString(t *testing.T) {
 	nonEmpty := "test"
 
 	tests := []struct {
-		a    interface{}
-		want bool
+		a         interface{}
+		hasErrors bool
 	}{
 		{empty, true},
 		{&empty, true},
@@ -57,8 +57,34 @@ func TestRequiredString(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			v := New()
 			v.Required(name, tt.a)
-			if got := v.HasErrors(); got != tt.want {
-				t.Errorf("\ngot:  %#v\nwant: %#v\n", got, tt.want)
+			if got := v.HasErrors(); got != tt.hasErrors {
+				t.Errorf("\ngot:  %#v\nwant: %#v\n", got, tt.hasErrors)
+			}
+		})
+	}
+}
+
+func TestRequiredSlice(t *testing.T) {
+	tests := []struct {
+		a         interface{}
+		hasErrors bool
+	}{
+		{[]struct{}{}, true},
+		{[]struct{}{{}}, true},
+		{[]*struct{}{nil}, true},
+		{[]*struct{}{nil, {}}, false},
+		{[]string{}, true},
+		{[]string{""}, true},
+		{[]string{"text"}, false},
+	}
+
+	for i, tt := range tests {
+		name := fmt.Sprintf("%v", i)
+		t.Run(name, func(t *testing.T) {
+			v := New()
+			v.Required(name, tt.a)
+			if got := v.HasErrors(); got != tt.hasErrors {
+				t.Errorf("\ngot:  %#v\nwant: %#v\n", got, tt.hasErrors)
 			}
 		})
 	}
@@ -73,8 +99,8 @@ func TestRequiredPtr(t *testing.T) {
 	nonEmpty := &customStruct{}
 
 	tests := []struct {
-		a    interface{}
-		want bool
+		a         interface{}
+		hasErrors bool
 	}{
 		{empty, true},
 		{nonEmpty, false},
@@ -85,8 +111,8 @@ func TestRequiredPtr(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			v := New()
 			v.Required(name, tt.a)
-			if got := v.HasErrors(); got != tt.want {
-				t.Errorf("\ngot:  %#v\nwant: %#v\n", got, tt.want)
+			if got := v.HasErrors(); got != tt.hasErrors {
+				t.Errorf("\ngot:  %#v\nwant: %#v\n", got, tt.hasErrors)
 			}
 		})
 	}
@@ -94,7 +120,7 @@ func TestRequiredPtr(t *testing.T) {
 
 func TestMerge(t *testing.T) {
 	tests := []struct {
-		a, b, want map[string][]string
+		a, b, hasErrors map[string][]string
 	}{
 		{
 			map[string][]string{},
@@ -132,8 +158,8 @@ func TestMerge(t *testing.T) {
 
 			in.Merge(other)
 
-			if !reflect.DeepEqual(tt.want, in.Errors) {
-				t.Errorf("\nout:  %#v\nwant: %#v\n", in.Errors, tt.want)
+			if !reflect.DeepEqual(tt.hasErrors, in.Errors) {
+				t.Errorf("\nout:  %#v\nwant: %#v\n", in.Errors, tt.hasErrors)
 			}
 		})
 	}
@@ -197,8 +223,8 @@ func TestSub(t *testing.T) {
 
 func TestString(t *testing.T) {
 	tests := []struct {
-		in   Validator
-		want string
+		in        Validator
+		hasErrors string
 	}{
 		{Validator{}, "<no errors>"},
 		{Validator{map[string][]string{}}, "<no errors>"},
@@ -225,8 +251,8 @@ func TestString(t *testing.T) {
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
 			out := tt.in.String()
-			if out != tt.want {
-				t.Errorf("\nout:  %#v\nwant: %#v\n", out, tt.want)
+			if out != tt.hasErrors {
+				t.Errorf("\nout:  %#v\nwant: %#v\n", out, tt.hasErrors)
 			}
 		})
 	}
@@ -541,11 +567,11 @@ func TestValidators(t *testing.T) {
 		},
 		{
 			func(v Validator) { v.URL("v", "ex ample.com") },
-			map[string][]string{"v": {"must be a valid url: parse http://ex%20ample.com: invalid URL escape \"%20\""}},
+			map[string][]string{"v": {"must be a valid url: parse \"http://ex%20ample.com\": invalid URL escape \"%20\""}},
 		},
 		{
 			func(v Validator) { v.URL("v", "unknown_schema://x.com") },
-			map[string][]string{"v": {"must be a valid url: parse unknown_schema://x.com: " +
+			map[string][]string{"v": {"must be a valid url: parse \"unknown_schema://x.com\": " +
 				"first path segment in URL cannot contain colon"}},
 		},
 
@@ -709,7 +735,7 @@ func TestValidators(t *testing.T) {
 func TestInteger(t *testing.T) {
 	tests := []struct {
 		val        func(Validator) int64
-		want       int64
+		hasErrors  int64
 		wantErrors map[string][]string
 	}{
 		{
@@ -758,8 +784,8 @@ func TestInteger(t *testing.T) {
 				t.Errorf("\nout:  %#v\nwant: %#v\n", v.Errors, tt.wantErrors)
 			}
 
-			if i != tt.want {
-				t.Errorf("\nout:  %#v\nwant: %#v\n", i, tt.want)
+			if i != tt.hasErrors {
+				t.Errorf("\nout:  %#v\nwant: %#v\n", i, tt.hasErrors)
 			}
 		})
 	}
@@ -768,7 +794,7 @@ func TestInteger(t *testing.T) {
 func TestBoolean(t *testing.T) {
 	tests := []struct {
 		val        func(Validator) bool
-		want       bool
+		hasErrors  bool
 		wantErrors map[string][]string
 	}{
 		{
@@ -852,8 +878,8 @@ func TestBoolean(t *testing.T) {
 				t.Errorf("\nout:  %#v\nwant: %#v\n", v.Errors, tt.wantErrors)
 			}
 
-			if i != tt.want {
-				t.Errorf("\nout:  %#v\nwant: %#v\n", i, tt.want)
+			if i != tt.hasErrors {
+				t.Errorf("\nout:  %#v\nwant: %#v\n", i, tt.hasErrors)
 			}
 		})
 	}
@@ -861,8 +887,8 @@ func TestBoolean(t *testing.T) {
 
 func TestErrorOrNil(t *testing.T) {
 	tests := []struct {
-		in   *Validator
-		want error
+		in        *Validator
+		hasErrors error
 	}{
 		{&Validator{}, nil},
 		{&Validator{Errors: map[string][]string{}}, nil},
@@ -875,8 +901,8 @@ func TestErrorOrNil(t *testing.T) {
 	for i, tt := range tests {
 		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
 			got := tt.in.ErrorOrNil()
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("\nout:  %#v\nwant: %#v\n", got, tt.want)
+			if !reflect.DeepEqual(got, tt.hasErrors) {
+				t.Errorf("\nout:  %#v\nwant: %#v\n", got, tt.hasErrors)
 			}
 		})
 	}
