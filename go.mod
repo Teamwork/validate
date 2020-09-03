@@ -1,6 +1,6 @@
 module github.com/teamwork/validate
 
-go 1.12
+go 1.15
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
