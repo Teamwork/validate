@@ -268,6 +268,46 @@ func (v *Validator) Required(key string, value interface{}, message ...string) {
 	}
 }
 
+// ExcludeInt64 validates that the value is not in the exclude list.
+func (v *Validator) ExcludeInt64(key string, value int64, exclude []int64, message ...string) {
+	msg := getMessage(message, "")
+
+	for _, e := range exclude {
+		if e == value {
+			if msg != "" {
+				v.Append(key, msg)
+			} else {
+				v.Append(key, fmt.Sprintf(MessageExclude, strconv.FormatInt(e, 10)))
+			}
+			return
+		}
+	}
+}
+
+// IncludeInt64 validates that the value is in the include list.
+func (v *Validator) IncludeInt64(key string, value int64, include []int64, message ...string) {
+	if len(include) == 0 {
+		return
+	}
+
+	for _, e := range include {
+		if e == value {
+			return
+		}
+	}
+
+	msg := getMessage(message, "")
+	if msg != "" {
+		v.Append(key, msg)
+	} else {
+		var intStr []string
+		for _, e := range include {
+			intStr = append(intStr, strconv.FormatInt(e, 10))
+		}
+		v.Append(key, fmt.Sprintf(MessageInclude, strings.Join(intStr, ", ")))
+	}
+}
+
 // Exclude validates that the value is not in the exclude list.
 //
 // This list is matched case-insensitive.

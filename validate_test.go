@@ -412,6 +412,51 @@ func TestValidators(t *testing.T) {
 			func(v Validator) { v.Len("v", "ราคาเหนือจอง", 12, 12) },
 			make(map[string][]string),
 		},
+
+		// ExcludeInt64
+		{
+			func(v Validator) { v.ExcludeInt64("key", 1, []int64{}) },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.ExcludeInt64("key", 1, nil) },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.ExcludeInt64("key", 1, []int64{2}) },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.ExcludeInt64("key", 1, []int64{1}, "foo") },
+			map[string][]string{"key": {`foo`}},
+		},
+		{
+			func(v Validator) { v.ExcludeInt64("key", 1, []int64{2, 1}) },
+			map[string][]string{"key": {`cannot be ‘1’`}},
+		},
+
+		// IncludeInt64
+		{
+			func(v Validator) { v.IncludeInt64("key", 1, []int64{}) },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.IncludeInt64("key", 1, nil) },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.IncludeInt64("key", 1, []int64{2}) },
+			map[string][]string{"key": {`must be one of ‘2’`}},
+		},
+		{
+			func(v Validator) { v.IncludeInt64("key", 1, []int64{2}, "foo") },
+			map[string][]string{"key": {`foo`}},
+		},
+		{
+			func(v Validator) { v.IncludeInt64("key", 1, []int64{2, 1}) },
+			make(map[string][]string),
+		},
+
 		// Exclude
 		{
 			func(v Validator) { v.Exclude("key", "val", []string{}) },
