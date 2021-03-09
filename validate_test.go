@@ -482,6 +482,14 @@ func TestValidators(t *testing.T) {
 			func(v Validator) { v.Exclude("key", "val", []string{"hello", "val"}) },
 			map[string][]string{"key": {`cannot be ‘val’`}},
 		},
+		{
+			func(v Validator) { v.Exclude("key", " val", []string{"hello", "val"}) },
+			map[string][]string{"key": {`cannot be ‘val’`}},
+		},
+		{
+			func(v Validator) { v.Exclude("key", "val", []string{"hello", "val "}) },
+			map[string][]string{"key": {`cannot be ‘val ’`}},
+		},
 
 		// Include
 		{
@@ -506,6 +514,14 @@ func TestValidators(t *testing.T) {
 		},
 		{
 			func(v Validator) { v.Include("key", "val", []string{"hello", "val"}) },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.Include("key", "val", []string{"hello", "val "}) },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.Include("key", "val ", []string{"hello", "val"}) },
 			make(map[string][]string),
 		},
 
