@@ -316,7 +316,7 @@ func (v *Validator) Exclude(key, value string, exclude []string, message ...stri
 
 	value = strings.TrimSpace(strings.ToLower(value))
 	for _, e := range exclude {
-		if strings.ToLower(e) == value {
+		if strings.ToLower(strings.TrimSpace(e)) == value {
 			if msg != "" {
 				v.Append(key, msg)
 			} else {
@@ -337,7 +337,7 @@ func (v *Validator) Include(key, value string, include []string, message ...stri
 
 	value = strings.TrimSpace(strings.ToLower(value))
 	for _, e := range include {
-		if strings.EqualFold(e, value) {
+		if strings.EqualFold(strings.TrimSpace(e), value) {
 			return
 		}
 	}
