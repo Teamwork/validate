@@ -484,7 +484,7 @@ func TestValidators(t *testing.T) {
 			map[string][]string{"key": {`cannot be ‘val’`}},
 		},
 
-		// ExcludeWithSanization
+		// ExcludeWithSanitization
 		{
 			func(v Validator) { v.ExcludeWithSanitization("key", "val", []string{}, "") },
 			make(map[string][]string),
@@ -544,38 +544,38 @@ func TestValidators(t *testing.T) {
 
 		// IncludeWithSanitization
 		{
-			func(v Validator) { v.IncludeWithSanization("key", "val", []string{}, "") },
+			func(v Validator) { v.IncludeWithSanitization("key", "val", []string{}, "") },
 			make(map[string][]string),
 		},
 		{
-			func(v Validator) { v.IncludeWithSanization("key", "val", nil, "") },
+			func(v Validator) { v.IncludeWithSanitization("key", "val", nil, "") },
 			make(map[string][]string),
 		},
 		{
-			func(v Validator) { v.IncludeWithSanization("key", "val", []string{"valx"}, "") },
+			func(v Validator) { v.IncludeWithSanitization("key", "val", []string{"valx"}, "") },
 			map[string][]string{"key": {`must be one of ‘valx’`}},
 		},
 		{
-			func(v Validator) { v.IncludeWithSanization("key", "val", []string{"valx"}, "foo") },
+			func(v Validator) { v.IncludeWithSanitization("key", "val", []string{"valx"}, "foo") },
 			map[string][]string{"key": {`foo`}},
 		},
 		{
-			func(v Validator) { v.IncludeWithSanization("key", "val", []string{"VAL"}, "") },
+			func(v Validator) { v.IncludeWithSanitization("key", "val", []string{"VAL"}, "") },
 			make(map[string][]string),
 		},
 		{
-			func(v Validator) { v.IncludeWithSanization("key", "val", []string{"hello", "val"}, "") },
+			func(v Validator) { v.IncludeWithSanitization("key", "val", []string{"hello", "val"}, "") },
 			make(map[string][]string),
 		},
 		{
 			func(v Validator) {
-				v.IncludeWithSanization("key", "val", []string{"hello", "val "}, "", strings.TrimSpace)
+				v.IncludeWithSanitization("key", "val", []string{"hello", "val "}, "", strings.TrimSpace)
 			},
 			map[string][]string{"key": {"must be one of ‘hello, val ’"}},
 		},
 		{
 			func(v Validator) {
-				v.IncludeWithSanization("key", "val ", []string{"hello", "val"}, "", strings.TrimSpace)
+				v.IncludeWithSanitization("key", "val ", []string{"hello", "val"}, "", strings.TrimSpace)
 			},
 			make(map[string][]string),
 		},

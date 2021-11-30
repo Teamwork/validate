@@ -377,7 +377,7 @@ func (v *Validator) Include(key, value string, include []string, message ...stri
 // IncludeWithSanitization sanitizes value using fs before validating that the value is in the include list.
 //
 // This list is matched case-insensitive.
-func (v *Validator) IncludeWithSanization(
+func (v *Validator) IncludeWithSanitization(
 	key, value string,
 	include []string, message string,
 	fs ...func(string) string,
