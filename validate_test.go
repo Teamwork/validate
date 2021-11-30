@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
@@ -482,13 +483,37 @@ func TestValidators(t *testing.T) {
 			func(v Validator) { v.Exclude("key", "val", []string{"hello", "val"}) },
 			map[string][]string{"key": {`cannot be ‘val’`}},
 		},
+
+		// ExcludeWithSanization
 		{
-			func(v Validator) { v.Exclude("key", " val", []string{"hello", "val"}) },
+			func(v Validator) { v.ExcludeWithSanitization("key", "val", []string{}, "") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.ExcludeWithSanitization("key", "val", nil, "") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.ExcludeWithSanitization("key", "val", []string{"valx"}, "") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.ExcludeWithSanitization("key", "val", []string{"VAL"}, "") },
+			map[string][]string{"key": {`cannot be ‘VAL’`}},
+		},
+		{
+			func(v Validator) { v.ExcludeWithSanitization("key", "val", []string{"VAL"}, "foo") },
+			map[string][]string{"key": {`foo`}},
+		},
+		{
+			func(v Validator) { v.ExcludeWithSanitization("key", "val", []string{"hello", "val"}, "") },
 			map[string][]string{"key": {`cannot be ‘val’`}},
 		},
 		{
-			func(v Validator) { v.Exclude("key", "val", []string{"hello", "val "}) },
-			map[string][]string{"key": {`cannot be ‘val ’`}},
+			func(v Validator) {
+				v.ExcludeWithSanitization("key", "val ", []string{"hello", "val"}, "", strings.TrimSpace)
+			},
+			map[string][]string{"key": {`cannot be ‘val’`}},
 		},
 
 		// Include
@@ -516,12 +541,42 @@ func TestValidators(t *testing.T) {
 			func(v Validator) { v.Include("key", "val", []string{"hello", "val"}) },
 			make(map[string][]string),
 		},
+
+		// IncludeWithSanitization
 		{
-			func(v Validator) { v.Include("key", "val", []string{"hello", "val "}) },
+			func(v Validator) { v.IncludeWithSanization("key", "val", []string{}, "") },
 			make(map[string][]string),
 		},
 		{
-			func(v Validator) { v.Include("key", "val ", []string{"hello", "val"}) },
+			func(v Validator) { v.IncludeWithSanization("key", "val", nil, "") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.IncludeWithSanization("key", "val", []string{"valx"}, "") },
+			map[string][]string{"key": {`must be one of ‘valx’`}},
+		},
+		{
+			func(v Validator) { v.IncludeWithSanization("key", "val", []string{"valx"}, "foo") },
+			map[string][]string{"key": {`foo`}},
+		},
+		{
+			func(v Validator) { v.IncludeWithSanization("key", "val", []string{"VAL"}, "") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) { v.IncludeWithSanization("key", "val", []string{"hello", "val"}, "") },
+			make(map[string][]string),
+		},
+		{
+			func(v Validator) {
+				v.IncludeWithSanization("key", "val", []string{"hello", "val "}, "", strings.TrimSpace)
+			},
+			map[string][]string{"key": {"must be one of ‘hello, val ’"}},
+		},
+		{
+			func(v Validator) {
+				v.IncludeWithSanization("key", "val ", []string{"hello", "val"}, "", strings.TrimSpace)
+			},
 			make(map[string][]string),
 		},
 
