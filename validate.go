@@ -327,6 +327,30 @@ func (v *Validator) Exclude(key, value string, exclude []string, message ...stri
 	}
 }
 
+// ExcludeWithSanitization sanitizes value using fs before validating that the value is not in the exclude list.
+//
+// This list is matched case-insensitive.
+func (v *Validator) ExcludeWithSanitization(
+	key, value string,
+	exclude []string, message string,
+	fs ...func(string) string,
+) {
+	for _, f := range fs {
+		value = f(value)
+	}
+
+	for _, e := range exclude {
+		if strings.EqualFold(e, value) {
+			if message != "" {
+				v.Append(key, message)
+			} else {
+				v.Append(key, fmt.Sprintf(MessageExclude, e))
+			}
+			return
+		}
+	}
+}
+
 // Include validates that the value is in the include list.
 //
 // This list is matched case-insensitive.
@@ -345,6 +369,35 @@ func (v *Validator) Include(key, value string, include []string, message ...stri
 	msg := getMessage(message, "")
 	if msg != "" {
 		v.Append(key, msg)
+	} else {
+		v.Append(key, fmt.Sprintf(MessageInclude, strings.Join(include, ", ")))
+	}
+}
+
+// IncludeWithSanitization sanitizes value using fs before validating that the value is in the include list.
+//
+// This list is matched case-insensitive.
+func (v *Validator) IncludeWithSanitization(
+	key, value string,
+	include []string, message string,
+	fs ...func(string) string,
+) {
+	if len(include) == 0 {
+		return
+	}
+
+	for _, f := range fs {
+		value = f(value)
+	}
+
+	for _, e := range include {
+		if strings.EqualFold(e, value) {
+			return
+		}
+	}
+
+	if message != "" {
+		v.Append(key, message)
 	} else {
 		v.Append(key, fmt.Sprintf(MessageInclude, strings.Join(include, ", ")))
 	}
