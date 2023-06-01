@@ -650,3 +650,45 @@ func (v *Validator) Range(key string, value, min, max int64, message ...string) 
 		}
 	}
 }
+
+// Equal returns whether two validators are equal.
+func (v *Validator) Equal(o *Validator) bool {
+	if v == nil && o == nil {
+		return true
+	}
+
+	if v == nil && o != nil && len(o.Errors) == 0 {
+		return true
+	}
+
+	if v != nil && len(v.Errors) == 0 && o == nil {
+		return true
+	}
+
+	if len(v.Errors) != len(o.Errors) {
+		return false
+	}
+
+	for k, vmsgs := range v.Errors {
+		omsgs, ok := o.Errors[k]
+		if !ok {
+			return false
+		}
+
+		if len(vmsgs) != len(omsgs) {
+			return false
+		}
+
+	NEXT:
+		for _, vmsg := range vmsgs {
+			for _, omsg := range omsgs {
+				if vmsg == omsg {
+					continue NEXT
+				}
+			}
+			return false
+		}
+	}
+
+	return true
+}
