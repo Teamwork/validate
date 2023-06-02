@@ -1035,6 +1035,8 @@ func TestEqual(t *testing.T) {
 		{nil, nil, true},
 		{nil, &Validator{}, true},
 		{&Validator{}, nil, true},
+		{nil, &Validator{Errors: map[string][]string{"a": {"A"}}}, false},
+		{&Validator{Errors: map[string][]string{"a": {"A"}}}, nil, false},
 
 		// empty
 		{&Validator{}, &Validator{}, true},

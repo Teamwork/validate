@@ -657,12 +657,12 @@ func (v *Validator) Equal(o *Validator) bool {
 		return true
 	}
 
-	if v == nil && o != nil && len(o.Errors) == 0 {
-		return true
+	if v == nil && o != nil {
+		return len(o.Errors) == 0
 	}
 
-	if v != nil && len(v.Errors) == 0 && o == nil {
-		return true
+	if v != nil && o == nil {
+		return len(v.Errors) == 0
 	}
 
 	if len(v.Errors) != len(o.Errors) {
