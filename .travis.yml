@@ -21,4 +21,4 @@ script: |
   env GO111MODULE=off ./bin/lint ./...
 
 before_cache: |
-  rm "$HOME/.cache/go-build/log.txt"
+  rm -f "$HOME/.cache/go-build/log.txt"

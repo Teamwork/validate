@@ -1505,8 +1505,8 @@ else
           say "${g}${res}${x}"
           exit ${exit_with}
       fi
-      say "    ${e}->${x} Sleeping for 30s and trying again..."
-      sleep 30
+      say "    ${e}->${x} Sleeping for 10s and trying again..."
+      sleep 10
     done
   fi
 

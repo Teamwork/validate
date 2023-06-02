@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/teamwork/mailaddress"
 )
 
@@ -1009,8 +1010,8 @@ func TestErrorOrNil(t *testing.T) {
 		{&Validator{}, nil},
 		{&Validator{Errors: map[string][]string{}}, nil},
 		{
-			&Validator{Errors: map[string][]string{"x": []string{"X"}}},
-			&Validator{Errors: map[string][]string{"x": []string{"X"}}},
+			&Validator{Errors: map[string][]string{"x": {"X"}}},
+			&Validator{Errors: map[string][]string{"x": {"X"}}},
 		},
 	}
 
@@ -1019,6 +1020,83 @@ func TestErrorOrNil(t *testing.T) {
 			got := tt.in.ErrorOrNil()
 			if !reflect.DeepEqual(got, tt.hasErrors) {
 				t.Errorf("\nout:  %#v\nwant: %#v\n", got, tt.hasErrors)
+			}
+		})
+	}
+}
+
+func TestEqual(t *testing.T) {
+	tests := []struct {
+		in    *Validator
+		vs    *Validator
+		equal bool
+	}{
+		// nil equate empty
+		{nil, nil, true},
+		{nil, &Validator{}, true},
+		{&Validator{}, nil, true},
+		{nil, &Validator{Errors: map[string][]string{"a": {"A"}}}, false},
+		{&Validator{Errors: map[string][]string{"a": {"A"}}}, nil, false},
+
+		// empty
+		{&Validator{}, &Validator{}, true},
+
+		// order doesn't matter
+		{
+			&Validator{Errors: map[string][]string{"a": {"A"}, "b": {"B"}}},
+			&Validator{Errors: map[string][]string{"a": {"A"}, "b": {"B"}}},
+			true,
+		},
+		{
+			&Validator{Errors: map[string][]string{"a": {"A"}, "b": {"B"}}},
+			&Validator{Errors: map[string][]string{"b": {"B"}, "a": {"A"}}},
+			true,
+		},
+		{
+			&Validator{Errors: map[string][]string{"a": {"A", "AA"}, "b": {"B"}}},
+			&Validator{Errors: map[string][]string{"b": {"B"}, "a": {"AA", "A"}}},
+			true,
+		},
+
+		// key with additional errors
+		{
+			&Validator{Errors: map[string][]string{"a": {"A"}, "b": {"B"}}},
+			&Validator{Errors: map[string][]string{"b": {"B"}, "a": {"A", "AA"}}},
+			false,
+		},
+		{
+			&Validator{Errors: map[string][]string{"a": {"A", "AA"}, "b": {"B"}}},
+			&Validator{Errors: map[string][]string{"b": {"B"}, "a": {"A"}}},
+			false,
+		},
+
+		// missing keys
+		{
+			&Validator{Errors: map[string][]string{"a": {"A"}}},
+			&Validator{Errors: map[string][]string{"b": {"B"}, "a": {"A"}}},
+			false,
+		},
+		{
+			&Validator{Errors: map[string][]string{"a": {"A"}, "c": {"C"}}},
+			&Validator{Errors: map[string][]string{"b": {"B"}, "a": {"A"}}},
+			false,
+		},
+		{
+			&Validator{Errors: map[string][]string{"b": {"B"}, "a": {"A"}}},
+			&Validator{Errors: map[string][]string{"a": {"A"}}},
+			false,
+		},
+		{
+			&Validator{Errors: map[string][]string{"a": {"A"}}},
+			&Validator{Errors: map[string][]string{"a": {"AA"}}},
+			false,
+		},
+	}
+
+	for i, tt := range tests {
+		t.Run(fmt.Sprintf("%v", i), func(t *testing.T) {
+			if actual := tt.in.Equal(tt.vs); actual != tt.equal {
+				t.Errorf("\nout:  %#v\nwant: %#v\n", actual, tt.equal)
 			}
 		})
 	}
