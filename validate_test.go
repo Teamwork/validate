@@ -1077,8 +1077,18 @@ func TestEqual(t *testing.T) {
 			false,
 		},
 		{
+			&Validator{Errors: map[string][]string{"a": {"A"}, "c": {"C"}}},
+			&Validator{Errors: map[string][]string{"b": {"B"}, "a": {"A"}}},
+			false,
+		},
+		{
 			&Validator{Errors: map[string][]string{"b": {"B"}, "a": {"A"}}},
 			&Validator{Errors: map[string][]string{"a": {"A"}}},
+			false,
+		},
+		{
+			&Validator{Errors: map[string][]string{"a": {"A"}}},
+			&Validator{Errors: map[string][]string{"a": {"AA"}}},
 			false,
 		},
 	}
