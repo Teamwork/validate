@@ -206,15 +206,15 @@ func TestSub(t *testing.T) {
 		v.Sub("lsub1", "", ls1)
 
 		want := map[string][]string{
-			"lsub1.lsub2[holiday].err": []string{"very sub"},
-			"sub1.sub2.err":            []string{"very sub"},
-			"name":                     []string{"must be set"},
-			"color":                    []string{"must be a valid color code"},
-			"setting.domain":           []string{"must be set"},
-			"setting.contactEmail":     []string{"must be a valid email address"},
-			"addresses[office].city":   []string{"must be set"},
-			"other":                    []string{"oh noes"},
-			"emails[office]":           []string{"not an email"},
+			"lsub1.lsub2[holiday].err": {"very sub"},
+			"sub1.sub2.err":            {"very sub"},
+			"name":                     {"must be set"},
+			"color":                    {"must be a valid color code"},
+			"setting.domain":           {"must be set"},
+			"setting.contactEmail":     {"must be a valid email address"},
+			"addresses[office].city":   {"must be set"},
+			"other":                    {"oh noes"},
+			"emails[office]":           {"not an email"},
 		}
 
 		if d := cmp.Diff(v.Errors, want); d != "" {
@@ -448,7 +448,7 @@ func TestValidators(t *testing.T) {
 		},
 		{
 			func(v Validator) { v.IncludeInt64("key", 1, []int64{2}) },
-			map[string][]string{"key": {`must be one of ‘2’`}},
+			map[string][]string{"key": {`must be one of ‘2’; got ‘1’`}},
 		},
 		{
 			func(v Validator) { v.IncludeInt64("key", 1, []int64{2}, "foo") },
@@ -528,7 +528,7 @@ func TestValidators(t *testing.T) {
 		},
 		{
 			func(v Validator) { v.Include("key", "val", []string{"valx"}) },
-			map[string][]string{"key": {`must be one of ‘valx’`}},
+			map[string][]string{"key": {`must be one of ‘valx’; got ‘val’`}},
 		},
 		{
 			func(v Validator) { v.Include("key", "val", []string{"valx"}, "foo") },
@@ -554,7 +554,7 @@ func TestValidators(t *testing.T) {
 		},
 		{
 			func(v Validator) { v.IncludeWithSanitization("key", "val", []string{"valx"}, "") },
-			map[string][]string{"key": {`must be one of ‘valx’`}},
+			map[string][]string{"key": {`must be one of ‘valx’; got ‘val’`}},
 		},
 		{
 			func(v Validator) { v.IncludeWithSanitization("key", "val", []string{"valx"}, "foo") },
@@ -572,7 +572,7 @@ func TestValidators(t *testing.T) {
 			func(v Validator) {
 				v.IncludeWithSanitization("key", "val", []string{"hello", "val "}, "", strings.TrimSpace)
 			},
-			map[string][]string{"key": {"must be one of ‘hello, val ’"}},
+			map[string][]string{"key": {"must be one of ‘hello, val ’; got ‘val’"}},
 		},
 		{
 			func(v Validator) {
