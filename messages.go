@@ -1,7 +1,7 @@
 package validate
 
 // Messages for the checkers; this can be changed for i18n.
-var (
+const (
 	MessageRequired    = "must be set"
 	MessageDomain      = "must be a valid domain"
 	MessageURL         = "must be a valid url"
