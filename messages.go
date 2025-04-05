@@ -11,7 +11,7 @@ const (
 	MessageLenLonger   = "must be longer than %d characters"
 	MessageLenShorter  = "must be shorter than %d characters"
 	MessageExclude     = "cannot be ‘%s’"
-	MessageInclude     = "must be one of ‘%s’"
+	MessageInclude     = "must be one of ‘%s’; got ‘%s’"
 	MessageInteger     = "must be a whole number"
 	MessageBool        = "must be a boolean"
 	MessageDate        = "must be a date as ‘%s’"
