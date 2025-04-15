@@ -2,44 +2,44 @@
 //
 // Basic usage example:
 //
-//   v := validate.New()
-//   v.Required("firstName", customer.FirstName)
-//   if v.HasErrors() {
-//       fmt.Println("Had the following validation errors:")
-//       for key, errors := range v.Errors {
-//           fmt.Printf("    %s: %s", key, strings.Join(errors))
-//       }
-//   }
+//	v := validate.New()
+//	v.Required("firstName", customer.FirstName)
+//	if v.HasErrors() {
+//	    fmt.Println("Had the following validation errors:")
+//	    for key, errors := range v.Errors {
+//	        fmt.Printf("    %s: %s", key, strings.Join(errors))
+//	    }
+//	}
 //
 // All validators treat the input's zero type (empty string, 0, nil, etc.) as
 // valid. Use the Required() validator if you want to make a parameter required.
 //
 // All validators optionally accept a custom message as the last parameter:
 //
-//   v.Required("key", value, "you really need to set this")
+//	v.Required("key", value, "you really need to set this")
 //
 // The error text only includes a simple human description such as "must be set"
 // or "must be a valid email". When adding new validations, make sure that they
 // can be displayed properly when joined with commas. A text such as "Error:
 // this field must be higher than 42" would look weird:
 //
-//   must be set, Error: this field must be higher than 42
+//	must be set, Error: this field must be higher than 42
 //
 // You can set your own errors with v.Append():
 //
-//   if !condition {
-//       v.Append("key", "must be a valid foo")
-//   }
+//	if !condition {
+//	    v.Append("key", "must be a valid foo")
+//	}
 //
 // Some validators return the parsed value, which makes it easier both validate
 // and get a useful value at the same time:
 //
-//   v := validate.New()
-//   id := v.Integer("id", c.Param("id"))
-//   if v.HasErrors() {
-//       return v
-//   }
-//   user := getUserByID(id)
+//	v := validate.New()
+//	id := v.Integer("id", c.Param("id"))
+//	if v.HasErrors() {
+//	    return v
+//	}
+//	user := getUserByID(id)
 package validate // import "github.com/teamwork/validate"
 
 import (
@@ -83,8 +83,8 @@ func (v Validator) Code() int { return 400 }
 func (v Validator) ErrorJSON() ([]byte, error) { return json.Marshal(v) }
 
 // Append a new error to the error list for this key.
-func (v *Validator) Append(key, value string, format ...interface{}) {
-	v.Errors[key] = append(v.Errors[key], fmt.Sprintf(value, format...))
+func (v *Validator) Append(key, message string) {
+	v.Errors[key] = append(v.Errors[key], message)
 }
 
 // HasErrors reports if this validation has any errors.
@@ -96,14 +96,14 @@ func (v *Validator) HasErrors() bool {
 //
 // This makes it a bit more elegant to return from a function:
 //
-//   if v.HasErrors() {
-//       return v
-//   }
-//   return nil
+//	if v.HasErrors() {
+//	    return v
+//	}
+//	return nil
 //
 // Can now be:
 //
-//   return v.ErrorOrNil()
+//	return v.ErrorOrNil()
 func (v *Validator) ErrorOrNil() error {
 	if v.HasErrors() {
 		return v
@@ -121,16 +121,16 @@ func (v *Validator) ErrorOrNil() error {
 //
 // For example:
 //
-//   v := validate.New()
-//   v.Required("name", customer.Name)
+//	v := validate.New()
+//	v.Required("name", customer.Name)
 //
-//   // e.g. "settings.domain"
-//   v.Sub("settings", -1, customer.Settings.Validate())
+//	// e.g. "settings.domain"
+//	v.Sub("settings", -1, customer.Settings.Validate())
 //
-//   // e.g. "addresses[1].city"
-//   for i, a := range customer.Addresses {
-//       a.Sub("addresses", i, c.Validate())
-//   }
+//	// e.g. "addresses[1].city"
+//	for i, a := range customer.Addresses {
+//	    a.Sub("addresses", i, c.Validate())
+//	}
 func (v *Validator) Sub(key, subKey string, err error) {
 	if err == nil {
 		return
@@ -464,7 +464,7 @@ func (v *Validator) URL(key, value string, message ...string) *url.URL {
 
 	u, err := url.Parse(value)
 	if err != nil && u == nil {
-		v.Append(key, "%s: %s", msg, err)
+		v.Append(key, fmt.Sprintf("%s: %s", msg, err))
 		return nil
 	}
 
@@ -477,7 +477,7 @@ func (v *Validator) URL(key, value string, message ...string) *url.URL {
 	}
 
 	if err != nil {
-		v.Append(key, "%s: %s", msg, err)
+		v.Append(key, fmt.Sprintf("%s: %s", msg, err))
 		return nil
 	}
 
