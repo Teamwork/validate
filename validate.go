@@ -304,7 +304,7 @@ func (v *Validator) IncludeInt64(key string, value int64, include []int64, messa
 		for _, e := range include {
 			intStr = append(intStr, strconv.FormatInt(e, 10))
 		}
-		v.Append(key, fmt.Sprintf(MessageInclude, strings.Join(intStr, ", ")))
+		v.Append(key, fmt.Sprintf(MessageInclude, strings.Join(intStr, ", "), strconv.FormatInt(value, 10)))
 	}
 }
 
@@ -370,7 +370,7 @@ func (v *Validator) Include(key, value string, include []string, message ...stri
 	if msg != "" {
 		v.Append(key, msg)
 	} else {
-		v.Append(key, fmt.Sprintf(MessageInclude, strings.Join(include, ", ")))
+		v.Append(key, fmt.Sprintf(MessageInclude, strings.Join(include, ", "), value))
 	}
 }
 
@@ -399,7 +399,7 @@ func (v *Validator) IncludeWithSanitization(
 	if message != "" {
 		v.Append(key, message)
 	} else {
-		v.Append(key, fmt.Sprintf(MessageInclude, strings.Join(include, ", ")))
+		v.Append(key, fmt.Sprintf(MessageInclude, strings.Join(include, ", "), value))
 	}
 }
 
